@@ -1,0 +1,35 @@
+{
+  "name": "Alta School Connect",
+  "short_name": "Alta BD",
+  "description": "School Connect BD tracker. Log school visits with a photo and a location stamp.",
+  "id": "/alta-bd-tracker/",
+  "start_url": "/alta-bd-tracker/",
+  "scope": "/alta-bd-tracker/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#12212B",
+  "theme_color": "#12212B",
+  "lang": "en-IN",
+  "dir": "ltr",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
