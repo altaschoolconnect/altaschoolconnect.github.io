@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alta School Connect — BD Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#12212B;--ink-2:#33505F;--ink-3:#7B95A3;--surface:#fff;--field:#E7EEF1;--field-2:#F4F8F9;
+--line:#D3DFE4;--pin:#E4572E;--verified:#17876B;--signal:#E0A106}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',system-ui,sans-serif;color:var(--ink);background:var(--ink);
+  padding:20px 14px 44px;display:flex;flex-direction:column;align-items:center}
+.mono{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.head{width:100%;max-width:1040px;margin-bottom:14px}
+.head h1{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:15px;font-weight:700;
+  letter-spacing:.03em;text-transform:uppercase;color:#fff}
+.head p{font-size:11.5px;color:#7B95A3;margin-top:3px;line-height:1.55;max-width:620px}
+.switch{display:inline-flex;gap:5px;margin-top:12px;background:#1B303D;padding:5px;border-radius:11px}
+.switch button{border:0;cursor:pointer;padding:9px 18px;border-radius:7px;background:transparent;color:#9FB6C2;
+  font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:12.5px;
+  letter-spacing:.04em;text-transform:uppercase}
+.switch button[aria-pressed="true"]{background:var(--field);color:var(--ink)}
+.switch button:focus-visible,.btn:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+
+.badge{display:inline-flex;align-items:center;font-family:'IBM Plex Mono',monospace;font-size:9.5px;
+  letter-spacing:.06em;text-transform:uppercase;padding:3px 7px;border-radius:5px;background:var(--field);
+  color:var(--ink-2);white-space:nowrap}
+.badge.ok{background:rgba(23,135,107,.13);color:var(--verified)}
+.badge.warn{background:rgba(224,161,6,.16);color:#8A6300}
+.badge.hot{background:rgba(228,87,46,.12);color:var(--pin)}
+.btn{border:0;cursor:pointer;padding:11px 16px;border-radius:9px;background:var(--ink);color:#fff;
+  font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:14px}
+.btn.ghost{background:var(--field);color:var(--ink)}
+.btn.go{background:var(--pin)}.btn.fin{background:var(--verified)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.wide{width:100%;padding:14px;font-size:15px;margin-top:4px}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+.sect{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-3);margin:18px 2px 9px;display:flex;justify-content:space-between;align-items:baseline}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:13px;margin-bottom:8px}
+.tap{cursor:pointer;transition:transform .12s,box-shadow .12s}
+.tap:hover{transform:translateY(-1px);box-shadow:0 5px 14px rgba(18,33,43,.09)}
+.sname{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:700;font-size:16px;line-height:1.2}
+.sarea{font-size:12px;color:var(--ink-2);margin-top:2px}
+.meta{font-size:11.5px;color:var(--ink-3);margin-top:7px;line-height:1.55}
+.bar{height:5px;background:var(--field);border-radius:3px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--ink);border-radius:3px}
+.bar i.good{background:var(--verified)}.bar i.low{background:var(--signal)}
+select,input[type=text],textarea{width:100%;font-family:'IBM Plex Sans',sans-serif;font-size:13.5px;
+  color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--surface)}
+textarea{resize:vertical;min-height:60px}
+label.fld{display:block;margin-bottom:12px}
+label.fld>span{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.11em;
+  text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:6px}
+.note{font-size:11.5px;color:var(--ink-3);line-height:1.65;padding:0 3px;margin-top:12px}
+.empty{text-align:center;padding:38px 20px;color:var(--ink-3);font-size:13px;line-height:1.6}
+.empty strong{display:block;font-family:'IBM Plex Sans Condensed',sans-serif;font-size:16px;
+  color:var(--ink-2);margin-bottom:5px}
+
+/* stage rail */
+.rail{display:flex;gap:3px;margin-top:9px}
+.rail i{flex:1;height:4px;border-radius:2px;background:var(--line)}
+.rail i.on{background:var(--ink)}.rail i.now{background:var(--pin)}
+.stage-txt{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-2);margin-top:6px;
+  letter-spacing:.04em;text-transform:uppercase}
+
+/* SIGNATURE: the conversation trail — one school's story, top to bottom */
+.trail{position:relative;padding-left:20px;margin-top:4px}
+.trail:before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:1.5px;background:var(--line)}
+.tr-item{position:relative;padding:0 0 15px 0}
+.tr-item:before{content:"";position:absolute;left:-19px;top:4px;width:11px;height:11px;border-radius:50%;
+  background:var(--field);border:2px solid var(--line)}
+.tr-item.first:before{background:var(--pin);border-color:var(--pin)}
+.tr-when{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-3);letter-spacing:.06em}
+.tr-what{font-size:13.5px;font-weight:500;line-height:1.4;margin-top:2px}
+.tr-who{font-size:11.5px;color:var(--ink-3);margin-top:3px;line-height:1.5}
+
+/* console */
+.console{width:100%;max-width:1040px;background:var(--field-2);border-radius:16px;overflow:hidden;
+  border:1px solid #2B4453;box-shadow:0 22px 55px rgba(0,0,0,.42);display:none}
+.console.on{display:block}
+.c-top{background:var(--ink);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;
+  align-items:center;gap:14px;flex-wrap:wrap}
+.c-top .brand{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:700;font-size:17px}
+.c-top .who{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#7B95A3;letter-spacing:.05em}
+.c-nav{display:flex;gap:2px;background:#1B303D;padding:4px;border-radius:9px}
+.c-nav button{border:0;background:transparent;color:#9FB6C2;cursor:pointer;padding:7px 14px;border-radius:6px;
+  font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:12px;letter-spacing:.04em;
+  text-transform:uppercase}
+.c-nav button[aria-selected="true"]{background:var(--field);color:var(--ink)}
+.c-body{padding:18px 20px 26px;max-height:700px;overflow-y:auto}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:10px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:9px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px}
+.kpi b{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:26px;font-weight:700;display:block;line-height:1}
+.kpi small{font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--ink-3);display:block;margin-top:5px;line-height:1.4}
+.kpi.pos b{color:var(--verified)}.kpi.neg b{color:var(--pin)}
+.avatar{width:36px;height:36px;flex:none;border-radius:11px;background:var(--field);color:var(--ink-2);
+  display:grid;place-items:center;font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:700;font-size:13px}
+.avatar.on{background:var(--verified);color:#fff}
+table{width:100%;border-collapse:collapse;font-size:13px}
+.tablewrap{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+th{background:var(--field);text-align:left;padding:9px 11px;font-family:'IBM Plex Mono',monospace;font-size:9.5px;
+  letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);border-bottom:1px solid var(--line)}
+td{padding:9px 11px;border-bottom:1px solid var(--field)}
+tbody tr:hover{background:var(--field-2)}
+tbody tr.sel{background:rgba(228,87,46,.06)}
+input[type=checkbox]{width:16px;height:16px;accent-color:var(--pin);cursor:pointer}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
+.toolbar label{flex:1;min-width:140px;margin:0}
+.actionbar{position:sticky;bottom:0;margin-top:12px;background:var(--ink);color:#fff;border-radius:11px;
+  padding:12px 15px;display:flex;gap:11px;align-items:center;flex-wrap:wrap}
+.actionbar .cnt{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:700;font-size:16px}
+.actionbar .hint{font-size:11.5px;color:#9FB6C2;flex:1;min-width:150px}
+.back{background:none;border:0;cursor:pointer;color:var(--ink-2);font-size:12.5px;padding:0 0 10px;
+  font-family:'IBM Plex Mono',monospace;letter-spacing:.05em}
+
+/* modal for console */
+.modal-wrap{position:fixed;inset:0;background:rgba(18,33,43,.62);display:none;align-items:center;
+  justify-content:center;padding:22px;z-index:90}
+.modal-wrap.open{display:flex}
+.modal{background:var(--field-2);border-radius:16px;width:100%;max-width:820px;max-height:86vh;
+  overflow-y:auto;padding:20px}
+.modal h3{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:20px;font-weight:700}
+.modal .sub{font-size:12.5px;color:var(--ink-2);margin:3px 0 14px}
+
+/* phone */
+.phone{width:100%;max-width:400px;height:790px;background:var(--field-2);border-radius:28px;overflow:hidden;
+  position:relative;display:none;flex-direction:column;border:1px solid #2B4453;
+  box-shadow:0 22px 55px rgba(0,0,0,.42)}
+.phone.on{display:flex}
+.statusbar{background:var(--ink);color:#B9CCD6;font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+  padding:9px 18px 6px;display:flex;justify-content:space-between;flex:none}
+.p-top{background:var(--ink);color:#fff;padding:4px 18px 14px;flex:none}
+.p-top .eb{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7B95A3;text-transform:uppercase;
+  letter-spacing:.13em;margin-bottom:3px}
+.p-top h2{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:23px;font-weight:700}
+.p-scroll{flex:1;overflow-y:auto;padding:15px 14px 26px}
+.p-scroll::-webkit-scrollbar{width:0}
+.tabbar{flex:none;display:flex;background:var(--surface);border-top:1px solid var(--line);padding:7px 4px 13px}
+.tabbar button{flex:1;border:0;background:none;cursor:pointer;padding:5px 2px;display:flex;flex-direction:column;
+  align-items:center;gap:4px;color:var(--ink-3);font-family:'IBM Plex Sans Condensed',sans-serif;font-size:10.5px;
+  font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.tabbar button[aria-selected="true"]{color:var(--ink)}
+.tabbar button[aria-selected="true"] .g{background:var(--ink);color:#fff}
+.g{width:26px;height:26px;border-radius:8px;background:var(--field);display:grid;place-items:center;
+  font-size:12px;font-family:'IBM Plex Mono',monospace}
+.sheet-wrap{position:absolute;inset:0;background:rgba(18,33,43,.52);display:none;align-items:flex-end;z-index:40}
+.sheet-wrap.open{display:flex}
+.sheet{width:100%;max-height:92%;overflow-y:auto;background:var(--field-2);border-radius:20px 20px 0 0;
+  padding:8px 15px 22px;animation:rise .2s ease-out}
+@keyframes rise{from{transform:translateY(24px)}to{transform:translateY(0)}}
+.grab{width:38px;height:4px;background:var(--line);border-radius:3px;margin:6px auto 13px}
+.sheet h3{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:20px;font-weight:700;line-height:1.2}
+.sheet .sub{font-size:12.5px;color:var(--ink-2);margin:3px 0 13px}
+.toast{position:absolute;left:14px;right:14px;bottom:80px;background:var(--ink);color:#fff;padding:12px 14px;
+  border-radius:11px;font-size:12.5px;z-index:70;transform:translateY(70px);opacity:0;transition:all .25s;
+  pointer-events:none;display:flex;gap:9px;align-items:center;line-height:1.45}
+.toast.show{transform:translateY(0);opacity:1}
+.toast .d{width:7px;height:7px;border-radius:50%;background:var(--verified);flex:none}
+.cap{border:1px dashed var(--line);background:var(--surface);border-radius:11px;padding:16px;text-align:center;
+  cursor:pointer;font-size:12.5px;color:var(--ink-3);line-height:1.5}
+.cap.done{border-style:solid;border-color:var(--verified);color:var(--verified);background:rgba(23,135,107,.05)}
+.cap img{width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-bottom:8px}
+.coords{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-2);line-height:1.6;
+  background:var(--field);border-radius:8px;padding:9px;margin-top:8px;word-break:break-all}
+/* login */
+.login{width:100%;max-width:400px;background:var(--field-2);border-radius:20px;padding:30px 26px 26px;
+  border:1px solid #2B4453;box-shadow:0 22px 55px rgba(0,0,0,.42);display:none;text-align:center}
+.login.on{display:block}
+.lg-brand{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:14px}
+.login h2{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:26px;font-weight:700}
+.lg-sub{font-size:13px;color:var(--ink-2);margin:5px 0 20px;line-height:1.5}
+.pinbox{width:100%;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:34px;letter-spacing:.5em;
+  padding:14px 10px 14px 20px;border:1px solid var(--line);border-radius:12px;background:var(--surface);
+  margin-bottom:12px;color:var(--ink)}
+.pinbox:focus{outline:2px solid var(--ink);outline-offset:-1px}
+.pinbox.bad{border-color:var(--pin);background:rgba(228,87,46,.05)}
+.lg-err{color:var(--pin);font-size:12.5px;min-height:19px;margin-top:9px;line-height:1.5}
+.lg-demo{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);text-align:left}
+.lg-demo h4{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:9px}
+.lg-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:12.5px;
+  border-bottom:1px solid var(--field);cursor:pointer}
+.lg-row:last-child{border:0}
+.lg-row:hover{color:var(--pin)}
+.lg-row .pin{font-family:'IBM Plex Mono',monospace;color:var(--ink-3)}
+/* session bar */
+.sessionbar{display:flex;gap:11px;align-items:center;margin-top:13px;background:#1B303D;padding:9px 9px 9px 14px;
+  border-radius:11px;flex-wrap:wrap}
+.sessionbar .nm{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:14px;color:#fff}
+.sessionbar .rl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;
+  color:#7B95A3;margin-left:8px}
+.sessionbar .sp{flex:1}
+.sessionbar button{border:0;background:var(--field);color:var(--ink);cursor:pointer;padding:7px 14px;
+  border-radius:8px;font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:12.5px}
+/* selfie proof tiles */
+.pf-img{width:64px;height:64px;flex:none;border-radius:10px;object-fit:cover;border:1px solid var(--line)}
+.pf-img.ph,.pf-big.ph{background:linear-gradient(135deg,#33505F,#12212B);color:#7B95A3;display:grid;
+  place-items:center;font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-align:center;
+  line-height:1.35;letter-spacing:.05em}
+.pf-big{width:100%;max-height:280px;object-fit:cover;border-radius:12px}
+.search{margin-bottom:11px}
+/* date strip */
+.daystrip{display:flex;gap:7px;overflow-x:auto;padding:2px 0 10px;scrollbar-width:none}
+.daystrip::-webkit-scrollbar{height:0}
+.daychip{flex:none;width:58px;border:1px solid var(--line);background:var(--surface);border-radius:11px;
+  padding:8px 4px 7px;cursor:pointer;text-align:center;position:relative;color:var(--ink-2)}
+.daychip .dw{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;letter-spacing:.07em;
+  text-transform:uppercase;color:var(--ink-3)}
+.daychip b{display:block;font-family:'IBM Plex Sans Condensed',sans-serif;font-size:20px;font-weight:700;
+  line-height:1.15;color:var(--ink)}
+.daychip .dm{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink-3)}
+.daychip i{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;border-radius:9px;
+  background:var(--pin);color:#fff;font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:9.5px;
+  display:grid;place-items:center;padding:0 4px}
+.daychip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink)}
+.daychip[aria-pressed="true"] b{color:#fff}
+.daychip[aria-pressed="true"] .dw,.daychip[aria-pressed="true"] .dm{color:#9FB6C2}
+.daychip:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-height:880px){.phone{height:min(790px,84vh)}.c-body{max-height:min(700px,70vh)}}
+</style>
+</head>
+<body>
+
+<div class="head">
+  <h1>Alta School Connect — BD Tracker</h1>
+  <p>One link for everyone. The PIN decides what opens — a manager gets the console with only their own team,
+     a BDM gets the app with only their own schools.</p>
+  <div class="sessionbar" id="sessionbar" style="display:none"></div>
+</div>
+
+<div class="login" id="login">
+  <div class="login-card">
+    <div class="lg-brand">Alta School Connect</div>
+    <h2>Sign in</h2>
+    <p class="lg-sub">Enter the 4-digit PIN your manager gave you.</p>
+    <input class="pinbox" id="pinIn" inputmode="numeric" maxlength="4" placeholder="••••"
+      autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()" oninput="clearPinErr()">
+    <button class="btn wide go" onclick="doLogin()">Sign in</button>
+    <div class="lg-err" id="lgErr"></div>
+    <div class="lg-demo" id="lgDemo"></div>
+  </div>
+</div>
+
+<div class="console on" id="console">
+  <div class="c-top">
+    <div><div class="brand">School Connect Console</div>
+      <div class="who" id="cWho">—</div></div>
+    <div class="c-nav" id="cnav"></div>
+  </div>
+  <div class="c-body" id="cbody"></div>
+</div>
+
+<div class="phone" id="phone">
+  <div class="statusbar"><span id="clock">10:12</span><span>GPS ON · 4G · 78%</span></div>
+  <div class="p-top"><div class="eb" id="pEb">&nbsp;</div><h2 id="pTitle">My schools</h2></div>
+  <div class="p-scroll" id="pScreen"></div>
+  <div class="tabbar" id="ptabs"></div>
+  <div class="sheet-wrap" id="sheetWrap" onclick="if(event.target===this)closeSheet()">
+    <div class="sheet" id="sheet"></div>
+  </div>
+  <div class="toast" id="toast"><span class="d"></span><span id="toastMsg"></span></div>
+</div>
+
+<div class="modal-wrap" id="modalWrap" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+/* ================= live data ================= */
+const API_URL = "https://script.google.com/macros/s/AKfycby5P4JpB2zf9xXBbjqrJ70UE9SJy85MlfmQ6FSF_q72znJB_golzWeWp0Db97ncSRph2g/exec";
+
+const STAGES=["Not contacted","Appointment fixed","Principal met","Seminar planned","Seminar done","Discovery Day list sent"];
+
+let MANAGERS=[], BDS=[], SCHOOLS=[], LOG=[];
+let TOKEN = localStorage.getItem("alta_token") || null;
+let BUSY = false;
+
+/* one call for everything that writes */
+async function api(body){
+  const res = await fetch(API_URL, {
+    method:"POST",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},   // json would trigger a preflight Apps Script cannot answer
+    body: JSON.stringify(Object.assign({token:TOKEN}, body))
+  });
+  return res.json();
+}
+async function pull(){
+  const res = await fetch(API_URL + "?token=" + encodeURIComponent(TOKEN));
+  return res.json();
+}
+
+/* backend column names -> the shapes the screens already expect */
+const asDate = v => String(v||"").slice(0,10);
+const asTime = v => { const t=String(v||""); const m=t.match(/(\d{2}:\d{2})/); return m?m[1]:t.slice(0,5); };
+
+function applyData(d){
+  if(!d) return;
+  SESSION = Object.assign({role:d.role}, d.me);
+  if(d.role==="bdm"){ ME=d.me.id; MENAME=d.me.name; BDS=[Object.assign({},d.me,{pin:""})]; }
+  else { ME=null; BDS=(d.team||[]).map(t=>Object.assign({manager:d.me.id}, t)); }
+
+  SCHOOLS=(d.schools||[]).map(s=>({
+    id:s.school_id, name:s.name, city:s.city,
+    board:s.board||"", cls12:+s.class12||0, principal:s.principal||"",
+    owner:s.assigned_to||"", stage:+s.stage||0, last:s.last_contact||"\u2014"
+  }));
+
+  LOG=(d.visits||[]).map(v=>({
+    school:v.school_id, bd:v.bd_id, d:asDate(v.date), t:asTime(v.time),
+    what:v.what_happened||"", stage:+v.stage||0,
+    loc:(v.lat!==""&&v.lat!=null)?(Number(v.lat).toFixed(4)+", "+Number(v.lng).toFixed(4)):"\u2014",
+    selfie:v.selfie_url||""
+  })).sort((a,b)=> (b.d+b.t).localeCompare(a.d+a.t));
+}
+
+/* every write goes through here: call, refresh, re-render */
+async function act(body, okMsg){
+  if(BUSY) return null;
+  BUSY=true; busy(true);
+  try{
+    const r=await api(body);
+    if(!r.ok){ alert(r.error||"Something went wrong."); return null; }
+    applyData(r.data);
+    if(SESSION.role==="manager") renderC(); else renderP();
+    if(okMsg) (SESSION.role==="bdm"?toast:alert)(okMsg);
+    return r.result||{};
+  }catch(e){
+    alert("Could not reach the server. Check your connection and try again.");
+    return null;
+  }finally{ BUSY=false; busy(false); }
+}
+function busy(on){
+  document.body.style.cursor = on ? "progress" : "";
+}
+
+let ctab="team", ptab="schools", selBd=null, picked=new Set(), F={city:"",own:""};
+let cap={selfie:null,loc:null}, q="", visDate=null, sq="", sCity="", mgrDate=null, bdDate=null, mMonth=null;
+const TODAY_D=(function(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");})();
+
+/* date helpers */
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const MONTHS_FULL=["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DOW=["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+function fmtD(d){const [y,m,dd]=d.split("-");return +dd+" "+MON[+m-1];}
+function dowOf(d){return DOW[new Date(d+"T00:00:00").getDay()];}
+function dayNum(d){return +d.split("-")[2];}
+function longD(d){const [y,m,dd]=d.split("-");
+  return dowOf(d)+", "+(+dd)+" "+MON[+m-1]+" "+y + (d===TODAY_D?" · today":"");}
+const whenTxt=l=>fmtD(l.d)+" · "+l.t;
+
+/* ================= plumbing ================= */
+/* ================= session ================= */
+let SESSION=null, ME=null, MENAME="";
+
+/* everything the signed-in manager is allowed to see */
+const TEAM=()=>SESSION&&SESSION.role==="manager"?BDS.filter(b=>b.manager===SESSION.id):BDS;
+const POOL=()=>SESSION&&SESSION.role==="manager"?SCHOOLS.filter(s=>SESSION.cities.includes(s.city)):SCHOOLS;
+const LOGS=()=>{const ids=new Set(TEAM().map(b=>b.id));return LOG.filter(l=>ids.has(l.bd));};
+
+function renderLoginHints(){
+  document.getElementById("lgDemo").innerHTML=
+    `<h4>Trouble signing in?</h4>
+     <div style="font-size:12.5px;color:var(--ink-3);line-height:1.6">
+       Your PIN comes from your manager. If it stops working, your account may have been switched off \u2014 ask them to check.
+     </div>`;
+}
+function clearPinErr(){
+  document.getElementById("pinIn").classList.remove("bad");
+  document.getElementById("lgErr").textContent="";
+}
+function pinError(msg){
+  document.getElementById("pinIn").classList.add("bad");
+  document.getElementById("lgErr").textContent=msg;
+}
+
+async function doLogin(){
+  const pin=document.getElementById("pinIn").value.trim();
+  if(pin.length<4){ pinError("Enter your 4-digit PIN."); return; }
+  const btn=document.querySelector("#login .btn");
+  btn.disabled=true; btn.textContent="Signing in\u2026";
+  try{
+    const r=await api({action:"signIn", pin:pin});
+    if(!r.ok){ pinError(r.error||"That PIN is not recognised."); return; }
+    TOKEN=r.token; localStorage.setItem("alta_token",TOKEN);
+    document.getElementById("pinIn").value="";
+    await boot();
+  }catch(e){
+    pinError("Could not reach the server. Check your connection.");
+  }finally{
+    btn.disabled=false; btn.textContent="Sign in";
+  }
+}
+
+function signOut(){
+  TOKEN=null; localStorage.removeItem("alta_token");
+  SESSION=null; ME=null; BDS=[]; SCHOOLS=[]; LOG=[];
+  applySession();
+}
+
+/* pull fresh data and show the right surface */
+async function boot(){
+  if(!TOKEN){ applySession(); return; }
+  try{
+    const r=await pull();
+    if(!r.ok){ TOKEN=null; localStorage.removeItem("alta_token"); SESSION=null; applySession(); return; }
+    applyData(r.data);
+    ctab="team"; ptab="schools"; selBd=null;
+    mgrDate=null; bdDate=null; mMonth=null; visDate=null;
+    applySession();
+  }catch(e){
+    SESSION=null; applySession();
+    pinError("Could not reach the server.");
+  }
+}
+
+function applySession(){
+  const inMgr=SESSION&&SESSION.role==="manager", inBd=SESSION&&SESSION.role==="bdm";
+  document.getElementById("login").classList.toggle("on",!SESSION);
+  document.getElementById("console").classList.toggle("on",!!inMgr);
+  document.getElementById("phone").classList.toggle("on",!!inBd);
+  document.getElementById("sessionbar").style.display = SESSION ? "flex" : "none";
+  document.getElementById("sessionbar").innerHTML = SESSION
+    ? `<span class="nm">${SESSION.name}</span><span class="rl">${inMgr?"Manager \u00b7 "+(SESSION.cities||[]).join(", "):"BDM \u00b7 "+(SESSION.campus||"")}</span>
+       <span class="sp"></span><button onclick="refresh()">Refresh</button><button onclick="signOut()">Sign out</button>`
+    : "";
+  if(!SESSION){ renderLoginHints(); return; }
+  if(inMgr){ document.getElementById("cWho").textContent=SESSION.name+" \u00b7 Regional BD Manager"; renderC(); }
+  else renderP();
+}
+async function refresh(){
+  const r=await pull();
+  if(r.ok){ applyData(r.data); SESSION.role==="manager"?renderC():renderP(); }
+}
+
+
+/* ================= shared helpers ================= */
+function toast(m){const t=document.getElementById("toast");
+  document.getElementById("toastMsg").textContent=m;t.classList.add("show");
+  clearTimeout(t._x);t._x=setTimeout(()=>t.classList.remove("show"),3200);}
+
+const bdName=id=>(BDS.find(b=>b.id===id)||{}).name||"Unassigned";
+const initials=n=>String(n||"").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase();
+const visitedToday=id=>LOG.filter(l=>l.bd===id&&l.d===TODAY_D).length;
+const monthOf=id=>LOG.filter(l=>l.bd===id&&l.d.startsWith(TODAY_D.slice(0,7)));
+const schoolOf=id=>SCHOOLS.find(s=>s.id===id)||{name:"\u2014",city:""};
+const dash=v=>v||"\u2014";
+const strength=s=>s.cls12?String(s.cls12):"\u2014";
+
+function rail(st){return `<div class="rail">${STAGES.map((_,i)=>
+  `<i class="${i<st?'on':i===st?'now':''}"></i>`).join("")}</div><div class="stage-txt">${STAGES[st]}</div>`;}
+
+/* proof tiles — selfies come back as Drive links */
+function driveThumb(url){
+  const m=String(url).match(/[-\w]{25,}/);
+  return m ? "https://drive.google.com/thumbnail?id="+m[0]+"&sz=w400" : url;
+}
+function selfieTile(l,big){
+  const sz=big?"pf-big":"pf-img";
+  if(!l.selfie) return `<div class="${sz} ph">NO<br>PHOTO</div>`;
+  const src = l.selfie.indexOf("data:")===0 ? l.selfie : driveThumb(l.selfie);
+  return `<a href="${l.selfie}" target="_blank" title="Open the full photo"><img src="${src}" class="${sz}" alt="Photo at the school"></a>`;
+}
+function proofCard(l){
+  const s=schoolOf(l.school);
+  return `<div class="card"><div style="display:flex;gap:11px">
+    ${selfieTile(l)}
+    <div style="flex:1;min-width:0">
+      <div style="display:flex;justify-content:space-between;gap:8px">
+        <div class="sname" style="font-size:15px">${s.name}</div>
+        <span class="badge ok">${l.t}</span>
+      </div>
+      <div class="sarea">${s.city} \u00b7 moved to ${STAGES[l.stage]}</div>
+      <div class="meta">${l.what}</div>
+      <div class="coords">${l.loc}
+        <a href="https://www.google.com/maps?q=${encodeURIComponent(l.loc)}" target="_blank"
+          style="color:var(--pin);margin-left:8px">Open in Maps</a></div>
+    </div></div></div>`;
+}
+
+function dayStrip(days,sel,fnName){
+  const src = fnName==="setMgrDate" ? LOGS() : LOG.filter(l=>l.bd===selBd);
+  return `<div class="daystrip">${days.map(d=>{
+    const n=src.filter(l=>l.d===d).length;
+    return `<button class="daychip" aria-pressed="${d===sel}" onclick="${fnName}('${d}')">
+      <span class="dw">${d===TODAY_D?"Today":dowOf(d)}</span><b>${dayNum(d)}</b>
+      <span class="dm">${MON[+d.split("-")[1]-1]}</span><i>${n}</i></button>`;}).join("")}</div>`;
+}
+function setMgrDate(d){mgrDate=d;renderC();}
+function setBdDate(d){bdDate=d;renderC();}
+
+function openModal(h){document.getElementById("modal").innerHTML=h;
+  document.getElementById("modalWrap").classList.add("open");}
+function closeModal(){document.getElementById("modalWrap").classList.remove("open");}
+
+/* ================= MANAGER ================= */
+const CTABS=[["team","BDM team"],["schools","School list"],["progress","Daily progress"],["monthly","Monthly progress"]];
+function renderC(){
+  document.getElementById("cnav").innerHTML=CTABS.map(([k,l])=>
+    `<button aria-selected="${ctab===k}" onclick="setCTab('${k}')">${l}</button>`).join("");
+  document.getElementById("cbody").innerHTML=
+    ctab==="team" ? (selBd?cBdDetail():cTeam()) : ({schools:cSchools,progress:cProgress,monthly:cMonthly})[ctab]();
+}
+function setCTab(t){ctab=t;selBd=null;renderC();}
+
+/* ---- 1. BD team ---- */
+function cTeam(){
+  return `<div class="sect"><span>BDMs</span><span class="mono">${TEAM().length} active</span></div>
+  <div class="grid2">${TEAM().map(b=>{
+    const mine=POOL().filter(s=>s.owner===b.id);
+    const month=monthOf(b.id);
+    const pct=b.target?Math.min(100,Math.round(month.length/b.target*100)):0;
+    return `<div class="card tap" onclick="openBd('${b.id}')">
+      <div style="display:flex;gap:11px;align-items:flex-start">
+        <div class="avatar ${visitedToday(b.id)?'on':''}">${initials(b.name)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;justify-content:space-between;gap:8px">
+            <div class="sname" style="font-size:15px">${b.name}</div>
+            <span class="badge ${visitedToday(b.id)?'ok':'warn'}">${visitedToday(b.id)} today</span>
+          </div>
+          <div class="sarea">${b.campus} campus · ${mine.length} schools assigned</div>
+          <div class="bar"><i class="${pct>=70?'good':pct>=40?'':'low'}" style="width:${pct}%"></i></div>
+          <div class="meta">Target ${month.length} / ${b.target} this month · ${pct}%</div>
+        </div>
+      </div></div>`;}).join("")}</div>
+  <button class="btn wide ghost" onclick="addBdForm()">Add a BDM</button>`;
+}
+function addBdForm(){
+  openModal(`<h3>Add a BDM</h3><div class="sub">They can sign in with this name and see whatever you assign.</div>
+    <label class="fld"><span>Full name</span><input type="text" id="nbName" placeholder="e.g. Sneha Kulkarni"></label>
+    <label class="fld"><span>Campus</span><select id="nbCampus">
+      <option>Pune</option><option>Indore</option><option>Jaipur</option><option>Delhi NCR</option><option>Hyderabad</option>
+    </select></label>
+    <label class="fld"><span>Phone</span><input type="text" id="nbPhone" placeholder="+91"></label>
+    <label class="fld"><span>Monthly visit target</span><input type="text" id="nbTarget" value="50"></label>
+    <div class="btn-row"><button class="btn ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn" onclick="saveBd()">Add BDM</button></div>`);
+}
+async function saveBd(){
+  const n=document.getElementById("nbName").value.trim();
+  if(!n){alert("A name is needed.");return;}
+  const body={action:"addBdm", name:n,
+    campus:document.getElementById("nbCampus").value,
+    phone:document.getElementById("nbPhone").value||"",
+    target:+document.getElementById("nbTarget").value||50};
+  closeModal();
+  const r=await act(body);
+  if(r) alert(n+" added.\n\nTheir sign-in PIN is "+r.pin+"\n\nShare it with them \u2014 it also shows on the BDM team screen.");
+}
+
+/* ---- BD detail: target, upload, day-wise proofs, assigned schools ---- */
+function openBd(id){selBd=id;picked.clear();bdDate=null;ctab="team";renderC();}
+function cBdDetail(){
+  const b=BDS.find(x=>x.id===selBd);
+  const my=POOL().filter(s=>s.owner===selBd);
+  const logs=LOGS().filter(l=>l.bd===selBd);
+  const month=monthOf(selBd);
+  const days=[...new Set(logs.map(l=>l.d))].sort().reverse();
+  if(!bdDate||!days.includes(bdDate)) bdDate=days[0]||TODAY_D;
+  const dayLogs=logs.filter(l=>l.d===bdDate).sort((a,b)=>a.t.localeCompare(b.t));
+  const pct=b.target?Math.min(100,Math.round(month.length/b.target*100)):0;
+
+  return `<button class="back" onclick="selBd=null;renderC()">← All BDMs</button>
+  <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+    <div class="avatar ${visitedToday(selBd)?'on':''}" style="width:44px;height:44px;font-size:15px">${initials(b.name)}</div>
+    <div style="flex:1;min-width:150px">
+      <div class="sname" style="font-size:20px">${b.name}</div>
+      <div class="sarea">${b.campus} campus · ${b.phone}</div>
+    </div>
+    <button class="btn ghost" onclick="targetForm()">Set target</button>
+    <button class="btn go" onclick="importForm(selBd)">Upload school list</button>
+    <button class="btn ghost" onclick="assignModal()">Assign existing schools</button>
+    <button class="btn ghost" style="color:var(--pin)" onclick="removeBdForm()">Remove BDM</button>
+  </div>
+
+  <div class="card" style="background:var(--ink);color:#fff;border-color:var(--ink)">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <div>
+        <div style="font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:19px">
+          ${month.length} of ${b.target} visits</div>
+        <div style="font-size:12px;color:#9FB6C2;margin-top:2px">${MONTHS_FULL[new Date().getMonth()]} target · ${b.target-month.length>0?b.target-month.length+" to go":"target met"}</div>
+      </div>
+      <span class="mono" style="font-size:24px;color:${pct>=70?'#54D3AE':pct>=40?'#F0C24B':'#FF9270'}">${pct}%</span>
+    </div>
+    <div class="bar" style="background:#2B4453"><i class="${pct>=70?'good':pct>=40?'':'low'}" style="width:${pct}%"></i></div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><b>${my.length}</b><small>Schools assigned</small></div>
+    <div class="kpi pos"><b>${visitedToday(selBd)}</b><small>Visits today</small></div>
+    <div class="kpi"><b>${my.filter(s=>s.stage>=2).length}</b><small>Principal met</small></div>
+    <div class="kpi"><b>${my.filter(s=>s.stage>=3).length}</b><small>Seminar stage</small></div>
+    <div class="kpi neg"><b>${my.filter(s=>s.stage===0).length}</b><small>Not started</small></div>
+  </div>
+
+  <div class="sect"><span>Day-wise · pick a date</span><span class="mono">${days.length} active days</span></div>
+  ${days.length?dayStrip(days,bdDate,"setBdDate"):""}
+  <div class="toolbar" style="margin-bottom:10px">
+    <label class="fld" style="max-width:210px"><span>Or any date</span>
+      <input type="date" value="${bdDate}" max="${TODAY_D}" onchange="setBdDate(this.value)"></label>
+  </div>
+
+  <div class="sect"><span>${longD(bdDate)} · proofs</span><span class="mono">${dayLogs.length} visits</span></div>
+  ${dayLogs.length? `<div class="grid2">${dayLogs.map(proofCard).join("")}</div>`
+    : `<div class="empty"><strong>No visits on this date</strong>Nothing was logged that day.</div>`}
+
+  <div class="sect"><span>Assigned schools · overall</span><span class="mono">${my.length} schools</span></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>School</th><th>City</th><th>Board</th><th>Class 12</th><th>Stage</th><th>Last contact</th><th></th></tr></thead>
+    <tbody>${my.map(s=>`<tr><td><b>${s.name}</b></td>
+      <td>${s.city}</td><td>${dash(s.board)}</td><td class="mono">${strength(s)}</td>
+      <td><span class="badge ${s.stage>=3?'ok':s.stage>0?'':'warn'}">${STAGES[s.stage]}</span></td>
+      <td class="mono">${s.last}</td>
+      <td><button class="back" style="padding:0;color:var(--pin)" onclick="unassign('${s.id}')">Remove</button></td></tr>`).join("")||
+      `<tr><td colspan="7"><div class="empty"><strong>Nothing assigned yet</strong>Upload a list or assign existing schools.</div></td></tr>`}
+    </tbody></table></div>
+  <div class="note">Remove takes the school off ${b.name.split(" ")[0]}'s list but keeps it in the master list, so it can be given to someone else.</div>`;
+}
+
+/* take a wrongly assigned school off this BDM's list */
+async function unassign(id){
+  const sc=SCHOOLS.find(x=>x.id===id);
+  if(!confirm("Remove "+sc.name+" from "+bdName(selBd)+"'s list?\n\nIt stays in the master school list and can be assigned to someone else."))return;
+  await act({action:"unassign", school_ids:[id]}, sc.name+" removed from the list.");
+}
+
+/* remove a BDM, deciding what happens to their schools */
+function removeBdForm(){
+  const b=BDS.find(x=>x.id===selBd);
+  const my=POOL().filter(s=>s.owner===selBd);
+  const visits=LOGS().filter(l=>l.bd===selBd).length;
+  const others=TEAM().filter(x=>x.id!==selBd);
+  openModal(`<h3>Remove ${b.name}</h3>
+    <div class="sub">They lose access to the app. Their past visits stay on record.</div>
+    <div class="card">
+      <div style="font-size:13px;color:var(--ink-2);line-height:1.9">
+        Schools currently assigned <b class="mono" style="float:right">${my.length}</b><br>
+        Visits logged so far <b class="mono" style="float:right">${visits}</b><br>
+        Campus <b style="float:right">${b.campus}</b></div></div>
+    ${my.length? `<label class="fld"><span>What happens to their ${my.length} schools</span>
+      <select id="rbMove">
+        <option value="">Return them to the master list as unassigned</option>
+        ${others.map(o=>`<option value="${o.id}">Hand over to ${o.name} · ${o.campus}</option>`).join("")}
+      </select></label>`
+      : `<div class="note" style="margin-bottom:12px">No schools are assigned to them, so nothing needs handing over.</div>`}
+    <div class="card" style="background:rgba(228,87,46,.07);border-color:var(--pin)">
+      <div style="font-size:12.5px;color:var(--ink-2);line-height:1.6">
+        ${visits? "Their "+visits+" logged visits stay in the records and keep showing on each school's trail, so history is not lost."
+                : "They have no visit history to preserve."}</div></div>
+    <div class="btn-row"><button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn go" onclick="doRemoveBd()">Remove ${b.name.split(" ")[0]}</button></div>`);
+}
+async function doRemoveBd(){
+  const b=BDS.find(x=>x.id===selBd);
+  const my=SCHOOLS.filter(x=>x.owner===selBd);
+  const moveTo=my.length ? (document.getElementById("rbMove")||{value:""}).value : "";
+  const gone=b.name, id=selBd;
+  closeModal(); selBd=null;
+  await act({action:"removeBdm", bd_id:id, move_to:moveTo||""},
+    gone+" removed."+(my.length?(moveTo?" "+my.length+" schools handed over.":" "+my.length+" schools returned to the master list."):""));
+}
+function targetForm(){
+  const b=BDS.find(x=>x.id===selBd);
+  openModal(`<h3>Set monthly target</h3>
+    <div class="sub">${b.name} sees this target in the app, and progress is measured against it.</div>
+    <label class="fld"><span>Visits per month</span>
+      <input type="text" id="tgVal" value="${b.target}"></label>
+    <div class="card" style="background:var(--field);border:0">
+      <div style="font-size:12.5px;color:var(--ink-2);line-height:1.6">
+        ${monthOf(selBd).length} visits logged this month, which is <b>${Math.round(monthOf(selBd).length/b.target*100)}%</b> of the current target of ${b.target}.</div></div>
+    <div class="btn-row"><button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn go" onclick="saveTarget()">Save target</button></div>`);
+}
+async function saveTarget(){
+  const v=+document.getElementById("tgVal").value;
+  if(!v||v<1){alert("Enter a valid number.");return;}
+  closeModal();
+  await act({action:"setTarget", bd_id:selBd, target:v}, "Target updated.");
+}
+
+
+/* ---- assign existing schools to this BDM ---- */
+function assignModal(){
+  picked.clear(); F={city:"",own:""};
+  openModal(assignBody());
+}
+function assignBody(){
+  const b=BDS.find(x=>x.id===selBd);
+  const cities=[...new Set(POOL().map(s=>s.city))];
+  const rows=POOL().filter(s=>(!F.city||s.city===F.city)&&
+    (F.own==="none"?!s.owner:F.own==="mine"?s.owner===selBd:true));
+  return `<h3>Assign schools to ${b.name}</h3>
+  <div class="sub">Filter the list, tick what you want, and move the whole set in one go.</div>
+  <div class="toolbar">
+    <label class="fld"><span>City</span><select onchange="F.city=this.value;refreshAssign()">
+      <option value="">All cities</option>${cities.map(c=>`<option ${F.city===c?"selected":""}>${c}</option>`).join("")}</select></label>
+    <label class="fld"><span>Show</span><select onchange="F.own=this.value;refreshAssign()">
+      <option value="">Everything</option>
+      <option value="none" ${F.own==="none"?"selected":""}>Unassigned only</option>
+      <option value="mine" ${F.own==="mine"?"selected":""}>Already ${b.name.split(" ")[0]}'s</option></select></label>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th style="width:34px"><input type="checkbox" onclick="assignAll(this.checked)"
+      ${rows.length&&rows.every(s=>picked.has(s.id))?"checked":""} aria-label="Select all"></th>
+      <th>School</th><th>City</th><th>Stage</th><th>Currently with</th></tr></thead>
+    <tbody>${rows.map(s=>`<tr class="${picked.has(s.id)?'sel':''}">
+      <td><input type="checkbox" ${picked.has(s.id)?"checked":""} onclick="assignPick('${s.id}',this.checked)"></td>
+      <td><b>${s.name}</b></td><td>${s.city}</td>
+      <td><span class="badge ${s.stage>=3?'ok':s.stage>0?'':'warn'}">${STAGES[s.stage]}</span></td>
+      <td>${s.owner?bdName(s.owner):'<span class="badge warn">Unassigned</span>'}</td></tr>`).join("")||
+      `<tr><td colspan="5"><div class="empty"><strong>Nothing here</strong>Loosen a filter.</div></td></tr>`}
+    </tbody></table></div>
+  <div class="actionbar"><span class="cnt">${picked.size} selected</span>
+    <button class="btn go" ${picked.size?"":"disabled"} onclick="doAssign()">Assign to ${b.name.split(" ")[0]}</button>
+    <button class="btn ghost" onclick="closeModal()">Close</button>
+    <span class="hint">Tick the header box to take every row shown.</span></div>`;
+}
+function refreshAssign(){document.getElementById("modal").innerHTML=assignBody();}
+function assignAll(on){
+  POOL().filter(s=>(!F.city||s.city===F.city)&&(F.own==="none"?!s.owner:F.own==="mine"?s.owner===selBd:true))
+    .forEach(s=>on?picked.add(s.id):picked.delete(s.id));
+  refreshAssign();
+}
+function assignPick(id,on){on?picked.add(id):picked.delete(id);refreshAssign();}
+async function doAssign(){
+  const ids=[...picked];
+  if(!ids.length) return;
+  picked.clear(); closeModal();
+  await act({action:"assign", bd_id:selBd, school_ids:ids},
+            ids.length+" schools assigned to "+bdName(selBd)+".");
+}
+
+/* ---- 2. school list ---- */
+function cSchools(){
+  const cities=[...new Set(POOL().map(s=>s.city))];
+  const rows=POOL().filter(s=>(!sCity||s.city===sCity)&&
+    (!sq||(s.name+s.city+s.principal).toLowerCase().includes(sq.toLowerCase())));
+  const unassigned=POOL().filter(s=>!s.owner).length;
+  return `<div class="kpis" style="margin-bottom:14px">
+    <div class="kpi"><b>${POOL().length}</b><small>Schools in list</small></div>
+    <div class="kpi pos"><b>${POOL().length-unassigned}</b><small>Assigned</small></div>
+    <div class="kpi neg"><b>${unassigned}</b><small>Unassigned</small></div>
+    <div class="kpi"><b>${cities.length}</b><small>Cities</small></div>
+  </div>
+  <div class="toolbar">
+    <label class="fld"><span>Search</span><input type="text" id="sqBox" value="${sq}"
+      placeholder="School, city or principal" oninput="sq=this.value;refreshSchools()"></label>
+    <label class="fld"><span>City</span><select onchange="sCity=this.value;renderC()">
+      <option value="">All cities</option>${cities.map(c=>`<option ${sCity===c?"selected":""}>${c}</option>`).join("")}</select></label>
+    <button class="btn" onclick="addSchoolForm()">Add a school</button>
+    <button class="btn go" onclick="importForm(null)">Upload school list</button>
+  </div>
+  <div class="tablewrap" id="schoolTable">${schoolRows(rows)}</div>
+  <div class="note">Assignment happens in the BDM team tab — open a BDM and use Assign schools.</div>`;
+}
+function schoolRows(rows){
+  return `<table>
+    <thead><tr><th>School</th><th>City</th><th>Board</th><th>Class 12</th><th>Principal</th><th>Assigned to</th><th>Stage</th><th></th></tr></thead>
+    <tbody>${rows.map(s=>`<tr>
+      <td><b>${s.name}</b></td>
+      <td>${s.city}</td>
+      <td>${s.board?s.board:'<span style="color:var(--ink-3)">BD to fill</span>'}</td>
+      <td class="mono">${s.cls12?s.cls12:'<span style="color:var(--ink-3)">—</span>'}</td>
+      <td>${s.principal?s.principal:'<span style="color:var(--ink-3)">—</span>'}</td>
+      <td>${s.owner?bdName(s.owner):'<span class="badge warn">Unassigned</span>'}</td>
+      <td><span class="badge ${s.stage>=3?'ok':s.stage>0?'':'warn'}">${STAGES[s.stage]}</span></td>
+      <td><button class="back" style="padding:0;color:var(--pin)" onclick="removeSchool('${s.id}')">Remove</button></td>
+      </tr>`).join("")||
+      `<tr><td colspan="8"><div class="empty"><strong>No schools found</strong>Try a different search or city filter.</div></td></tr>`}
+    </tbody></table>`;
+}
+function refreshSchools(){
+  const rows=POOL().filter(s=>(!sCity||s.city===sCity)&&
+    (!sq||(s.name+s.city+s.principal).toLowerCase().includes(sq.toLowerCase())));
+  document.getElementById("schoolTable").innerHTML=schoolRows(rows);
+}
+async function removeSchool(id){
+  const sc=SCHOOLS.find(x=>x.id===id);
+  if(!confirm("Remove "+sc.name+" from the master list?\n\nThis deletes the school for everyone."))return;
+  await act({action:"removeSchool", school_id:id}, sc.name+" removed.");
+}
+
+/* ---- import: upload a file or paste rows. Name and city only. ---- */
+function importForm(toBd){
+  const who=toBd?BDS.find(x=>x.id===toBd):null;
+  openModal(`<h3>${who?"Upload school list for "+who.name:"Upload school list"}</h3>
+    <div class="sub">${who?"Everything you add here goes straight onto "+who.name.split(" ")[0]+"'s list."
+      :"Add schools to the master list. Assign them to a BDM afterwards."}</div>
+
+    <div class="card" style="background:var(--field);border:0">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-2);line-height:1.9">
+        TWO COLUMNS ONLY<br><b>School name → City</b><br>
+        <span style="color:var(--ink-3)">Board, Class 12 strength and principal are filled in later by the BD from the field.</span>
+      </div></div>
+
+    <label class="fld"><span>Option 1 · Upload a file</span>
+      <div class="cap" id="fileDrop" onclick="document.getElementById('listFile').click()">
+        Choose an Excel or CSV file<br>
+        <span style="font-size:11px">.xlsx, .xls or .csv — first sheet is read</span></div>
+      <input type="file" id="listFile" accept=".csv,.xlsx,.xls" hidden onchange="readListFile(this,${toBd?"'"+toBd+"'":"null"})">
+    </label>
+
+    <label class="fld"><span>Option 2 · Paste rows</span>
+      <textarea id="impTxt" style="min-height:140px;font-family:'IBM Plex Mono',monospace;font-size:12px"
+        placeholder="Orchid International	Pune
+Deccan Public School	Pune
+Sarvodaya Vidyalaya	Delhi NCR"></textarea></label>
+
+    <div class="btn-row"><button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn go" onclick="doImport(${toBd?"'"+toBd+"'":"null"})">${who?"Add and assign":"Add these schools"}</button></div>
+    <div class="note">A header row is skipped automatically. Schools already on the list are not duplicated${who?" — they are simply moved to "+who.name.split(" ")[0]:""}.</div>`);
+}
+
+/* read an uploaded .csv / .xlsx and drop its rows into the paste box */
+function readListFile(inp,toBd){
+  const f=inp.files&&inp.files[0]; if(!f) return;
+  const drop=document.getElementById("fileDrop");
+  drop.innerHTML="Reading "+f.name+"…";
+  const done=lines=>{
+    document.getElementById("impTxt").value=lines.join("\n");
+    drop.classList.add("done");
+    drop.innerHTML=f.name+" loaded · "+lines.length+" rows<br><span style='font-size:11px'>Check the box below, then add</span>";
+  };
+  if(/\.csv$/i.test(f.name)){
+    const r=new FileReader();
+    r.onload=()=>done(r.result.split(/\r?\n/).filter(l=>l.trim()));
+    r.readAsText(f);
+  } else {
+    loadXLSX(()=>{
+      const r=new FileReader();
+      r.onload=e=>{
+        try{
+          const wb=XLSX.read(new Uint8Array(e.target.result),{type:"array"});
+          const rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,blankrows:false});
+          done(rows.map(r=>r.slice(0,2).join("\t")).filter(l=>l.trim()));
+        }catch(err){ drop.innerHTML="Could not read that file. Try saving it as CSV."; }
+      };
+      r.readAsArrayBuffer(f);
+    }, ()=>{ drop.innerHTML="Excel reader unavailable offline. Save the file as CSV and upload again."; });
+  }
+}
+function loadXLSX(ok,fail){
+  if(window.XLSX) return ok();
+  const s=document.createElement("script");
+  s.src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+  s.onload=ok; s.onerror=fail; document.head.appendChild(s);
+}
+
+async function doImport(toBd){
+  const txt=document.getElementById("impTxt").value.trim();
+  if(!txt){alert("Upload a file or paste some rows first.");return;}
+  const rows=[];
+  txt.split(/\r?\n/).forEach(line=>{
+    if(!line.trim()) return;
+    const c=line.split(/\t|,/).map(x=>x.trim());
+    if(!c[0]) return;
+    if(/^(school\s*name|name|school)$/i.test(c[0])) return;
+    rows.push({name:c[0], city:c[1]||""});
+  });
+  if(!rows.length){alert("No usable rows found.");return;}
+  closeModal();
+  const r=await act({action:"addSchools", rows:rows, assign_to:toBd||""});
+  if(r) alert(r.added+" schools added."
+    +(toBd?" Assigned to "+bdName(toBd)+".":"")
+    +(r.moved?" "+r.moved+" existing schools moved over.":""));
+}
+function addSchoolForm(){
+  openModal(`<h3>Add a school</h3><div class="sub">Name and city are all that's needed. The BD fills in the rest from the field.</div>
+    <label class="fld"><span>School name</span><input type="text" id="nsName"></label>
+    <label class="fld"><span>City</span><select id="nsCity">
+      <option>Pune</option><option>Indore</option><option>Jaipur</option><option>Delhi NCR</option><option>Hyderabad</option></select></label>
+    <label class="fld"><span>Assign to a BDM (optional)</span><select id="nsOwner">
+      <option value="">Leave unassigned</option>
+      ${TEAM().map(b=>`<option value="${b.id}">${b.name} · ${b.campus}</option>`).join("")}</select></label>
+    <div class="btn-row"><button class="btn ghost" onclick="closeModal()">Cancel</button>
+    <button class="btn" onclick="saveSchool()">Add school</button></div>`);
+}
+async function saveSchool(){
+  const n=document.getElementById("nsName").value.trim();
+  if(!n){alert("A school name is needed.");return;}
+  const city=document.getElementById("nsCity").value;
+  const owner=document.getElementById("nsOwner").value;
+  closeModal();
+  await act({action:"addSchools", rows:[{name:n, city:city}], assign_to:owner||""}, n+" added.");
+}
+
+/* ---- 3. daily progress ---- */
+function cProgress(){
+  const days=[...new Set(LOGS().map(l=>l.d))].sort().reverse();
+  if(!mgrDate) mgrDate=days.includes(TODAY_D)?TODAY_D:days[0];
+  const dayLogs=LOGS().filter(l=>l.d===mgrDate);
+  const active=new Set(dayLogs.map(l=>l.bd)).size;
+  return `<div class="sect"><span>Pick a date</span><span class="mono">${days.length} active days</span></div>
+  ${dayStrip(days,mgrDate,"setMgrDate")}
+  <div class="toolbar" style="margin-bottom:12px">
+    <label class="fld" style="max-width:210px"><span>Or any date</span>
+      <input type="date" value="${mgrDate}" max="${TODAY_D}" onchange="setMgrDate(this.value)"></label>
+  </div>
+
+  <div class="sect"><span>${longD(mgrDate)}</span><span class="mono">${dayLogs.length} visits</span></div>
+  <div class="kpis">
+    <div class="kpi pos"><b>${dayLogs.length}</b><small>Visits that day</small></div>
+    <div class="kpi"><b>${active} / ${TEAM().length}</b><small>BDMs active</small></div>
+    <div class="kpi neg"><b>${TEAM().length-active}</b><small>No visit</small></div>
+    <div class="kpi"><b>${new Set(dayLogs.map(l=>l.school)).size}</b><small>Schools covered</small></div>
+  </div>
+
+  <div class="sect"><span>BDM-wise · click a name</span></div>
+  <div class="grid2">${TEAM().map(b=>{
+    const t=dayLogs.filter(x=>x.bd===b.id).sort((a,c)=>a.t.localeCompare(c.t));
+    const month=monthOf(b.id);
+    const pct=b.target?Math.min(100,Math.round(month.length/b.target*100)):0;
+    return `<div class="card tap" onclick="openBd('${b.id}')">
+      <div style="display:flex;gap:10px;align-items:center">
+        <div class="avatar ${t.length?'on':''}">${initials(b.name)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;justify-content:space-between;gap:8px">
+            <div class="sname" style="font-size:15px">${b.name}</div>
+            <span class="badge ${t.length?'ok':'warn'}">${t.length} visits</span>
+          </div>
+          <div class="sarea">${b.campus} · month ${month.length}/${b.target} · ${pct}%</div>
+          <div class="bar"><i class="${pct>=70?'good':pct>=40?'':'low'}" style="width:${pct}%"></i></div>
+        </div></div>
+      ${t.length? `<div class="trail" style="margin-top:11px">${t.map((x,i)=>`<div class="tr-item ${i===0?'first':''}">
+          <div class="tr-when">${x.t} · ${schoolOf(x.school).name}</div>
+          <div class="tr-what" style="font-size:12.5px">${x.what}</div>
+          <div class="tr-who">${STAGES[x.stage]} · ${x.loc} · selfie on file</div></div>`).join("")}</div>`
+        : `<div class="meta">No visits logged that day.</div>`}
+      <div class="meta" style="color:var(--pin)">Open full tracker →</div>
+    </div>`;}).join("")}</div>
+  <div class="note">Every line comes from a submitted visit, with photo and location attached. Click any name to open that BDM's full daily and overall record.</div>`;
+}
+
+
+/* ---- 4. monthly progress ---- */
+const monthLabel=m=>MONTHS_FULL[+m.split("-")[1]-1]+" "+m.split("-")[0];
+
+function cMonthly(){
+  const months=[...new Set(LOGS().map(l=>l.d.slice(0,7)))].sort().reverse();
+  if(!mMonth||!months.includes(mMonth)) mMonth=months[0];
+  const logs=LOGS().filter(l=>l.d.startsWith(mMonth));
+  const reached=[...new Set(logs.map(l=>l.school))];
+  const activeBd=new Set(logs.map(l=>l.bd)).size;
+  const totalTarget=TEAM().reduce((a,b)=>a+b.target,0);
+  const pctT=totalTarget?Math.round(logs.length/totalTarget*100):0;
+  const assigned=POOL().filter(s=>s.owner).length;
+  const funnel=STAGES.map((label,i)=>({label,
+    n:reached.map(id=>schoolOf(id)).filter(s=>s.stage===i).length}));
+  const maxF=Math.max(1,...funnel.map(f=>f.n));
+  const untouched=POOL().filter(s=>s.owner&&reached.indexOf(s.id)<0);
+
+  return `<div class="sect"><span>Pick a month</span><span class="mono">${months.length} months on record</span></div>
+  <div class="toolbar" style="margin-bottom:14px">
+    <label class="fld" style="max-width:230px"><span>Month</span>
+      <select onchange="mMonth=this.value;renderC()">
+        ${months.map(m=>`<option value="${m}" ${m===mMonth?"selected":""}>${monthLabel(m)}</option>`).join("")}
+      </select></label>
+  </div>
+
+  <div class="card" style="background:var(--ink);color:#fff;border-color:var(--ink)">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <div>
+        <div style="font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:21px">
+          ${reached.length} schools reached in ${monthLabel(mMonth)}</div>
+        <div style="font-size:12px;color:#9FB6C2;margin-top:3px">
+          ${logs.length} visits across ${activeBd} of ${TEAM().length} BDMs · team target ${totalTarget}</div>
+      </div>
+      <span class="mono" style="font-size:26px;color:${pctT>=70?'#54D3AE':pctT>=40?'#F0C24B':'#FF9270'}">${pctT}%</span>
+    </div>
+    <div class="bar" style="background:#2B4453"><i class="${pctT>=70?'good':pctT>=40?'':'low'}" style="width:${Math.min(100,pctT)}%"></i></div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><b>${POOL().length}</b><small>Schools in list</small></div>
+    <div class="kpi"><b>${assigned}</b><small>Assigned to a BDM</small></div>
+    <div class="kpi pos"><b>${reached.length}</b><small>Reached this month</small></div>
+    <div class="kpi neg"><b>${untouched.length}</b><small>Assigned but untouched</small></div>
+    <div class="kpi"><b>${logs.length}</b><small>Total visits</small></div>
+  </div>
+
+  <div class="sect"><span>Where those schools stand now</span><span class="mono">stage</span></div>
+  <div class="card">${funnel.map(f=>`
+    <div style="margin-bottom:11px">
+      <div style="display:flex;justify-content:space-between;font-size:13px">
+        <span>${f.label}</span><b class="mono">${f.n}</b></div>
+      <div class="bar"><i class="${f.n?'good':''}" style="width:${f.n/maxF*100}%"></i></div>
+    </div>`).join("")}
+    <div class="meta">Counted against each school's current stage, not the stage it was at when the visit happened.</div>
+  </div>
+
+  <div class="sect"><span>BDM-wise · ${monthLabel(mMonth)}</span><span class="mono">click a row</span></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>BDM</th><th>Campus</th><th>Assigned</th><th>Schools reached</th><th>Visits</th><th>Target</th><th>Progress</th></tr></thead>
+    <tbody>${TEAM().map(b=>{
+      const bl=logs.filter(l=>l.bd===b.id);
+      const br=new Set(bl.map(l=>l.school)).size;
+      const as=POOL().filter(s=>s.owner===b.id).length;
+      const pct=b.target?Math.round(bl.length/b.target*100):0;
+      return `<tr style="cursor:pointer" onclick="openBd('${b.id}')">
+        <td><b>${b.name}</b></td><td>${b.campus}</td>
+        <td class="mono">${as}</td><td class="mono">${br}</td><td class="mono">${bl.length}</td>
+        <td class="mono">${b.target}</td>
+        <td style="min-width:110px"><div class="bar" style="margin:0"><i class="${pct>=70?'good':pct>=40?'':'low'}"
+          style="width:${Math.min(100,pct)}%"></i></div>
+          <span class="mono" style="font-size:11px;color:var(--ink-3)">${pct}%</span></td></tr>`;}).join("")}
+      <tr style="background:var(--field)">
+        <td><b>Team total</b></td><td>—</td>
+        <td class="mono"><b>${assigned}</b></td><td class="mono"><b>${reached.length}</b></td>
+        <td class="mono"><b>${logs.length}</b></td><td class="mono"><b>${totalTarget}</b></td>
+        <td class="mono"><b>${pctT}%</b></td></tr>
+    </tbody></table></div>
+
+  <div class="sect"><span>Untouched this month</span><span class="mono">${untouched.length}</span></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>School</th><th>City</th><th>Assigned to</th><th>Stage</th><th>Last contact</th></tr></thead>
+    <tbody>${untouched.slice(0,12).map(s=>`<tr>
+      <td><b>${s.name}</b></td><td>${s.city}</td><td>${bdName(s.owner)}</td>
+      <td><span class="badge ${s.stage>0?'':'warn'}">${STAGES[s.stage]}</span></td>
+      <td class="mono">${s.last}</td></tr>`).join("")||
+      `<tr><td colspan="5"><div class="empty"><strong>Every assigned school was visited</strong>Nothing pending this month.</div></td></tr>`}
+    </tbody></table></div>
+  <div class="note">This is the follow-up list \u2014 schools sitting on someone's plate with no visit logged this month.</div>`;
+}
+
+/* ================= BD APP — 3 screens ================= */
+const PTABS=[["schools","⌂","My schools"],["visits","◫","My visits"],["me","●","Me"]];
+const PTITLES=()=>({
+  schools:[(SESSION&&SESSION.name||"")+" · BDM"+((SESSION&&SESSION.campus)?" · "+SESSION.campus:""),"My schools"],
+  visits:["What I've logged","My visits"],
+  me:[MONTHS_FULL[new Date().getMonth()]+" cycle","Me"]
+});
+function renderP(){
+  const active=BDS.some(b=>b.id===ME);
+  if(!active){
+    document.getElementById("pEb").textContent="Signed out";
+    document.getElementById("pTitle").textContent="No access";
+    document.getElementById("ptabs").innerHTML="";
+    document.getElementById("pScreen").innerHTML=`<div class="empty" style="padding-top:70px">
+      <strong>This account is no longer active</strong>
+      ${MENAME} has been removed from the team, so the school list is not available.
+      Past visits stay on record with the manager.<br><br>
+      Add the BDM back in the console to restore access.</div>`;
+    return;
+  }
+  const [eb,ti]=PTITLES()[ptab];
+  document.getElementById("pEb").textContent=eb;
+  document.getElementById("pTitle").textContent=ti;
+  document.getElementById("ptabs").innerHTML=PTABS.map(([k,g,l])=>
+    `<button aria-selected="${ptab===k}" onclick="setPTab('${k}')"><span class="g">${g}</span>${l}</button>`).join("");
+  document.getElementById("pScreen").innerHTML=({schools:pSchools,visits:pVisits,me:pMe})[ptab]();
+}
+function setPTab(t){ptab=t;renderP();document.getElementById("pScreen").scrollTop=0;}
+const mine=()=>SCHOOLS.filter(s=>s.owner===ME);
+
+/* ---- Screen 1: all my schools ---- */
+function pSchools(){
+  const list=mine().filter(s=>!q||(s.name+s.city).toLowerCase().includes(q.toLowerCase()));
+  return `<div class="search"><input type="text" placeholder="Search your schools" value="${q}"
+    oninput="q=this.value;liveList()"></div>
+    <div class="sect"><span>Assigned to you</span><span class="mono">${mine().length} schools</span></div>
+    <div id="liveList">${listHtml(list)}</div>
+    <div class="note">Open whichever school you are at and log the visit. Nobody plans your route — this is the full list, you pick.</div>`;
+}
+function listHtml(list){
+  return list.map(s=>`<div class="card tap" onclick="openSchool('${s.id}')">
+    <div style="display:flex;justify-content:space-between;gap:8px">
+      <div style="flex:1;min-width:0"><div class="sname">${s.name}</div>
+      <div class="sarea">${s.city}${s.cls12?" · Class 12: "+s.cls12:" · details not filled yet"}</div></div>
+      <span class="badge ${s.last==='—'?'warn':s.last==='today'?'ok':''}">${s.last==='—'?'Never':s.last}</span>
+    </div>${rail(s.stage)}</div>`).join("")||`<div class="empty"><strong>No match</strong>Try a different word.</div>`;
+}
+function liveList(){
+  const list=mine().filter(s=>!q||(s.name+s.city).toLowerCase().includes(q.toLowerCase()));
+  document.getElementById("liveList").innerHTML=listHtml(list);
+}
+
+/* ---- Screen 2: school tracker + log visit ---- */
+function openSchool(id){
+  const s=SCHOOLS.find(x=>x.id===id);
+  const hist=LOG.filter(l=>l.school===id);
+  openSheet(`<h3>${s.name}</h3><div class="sub">${s.city}${s.board?" · "+s.board:""}</div>
+    <div class="card">
+      <div style="font-size:13px;color:var(--ink-2);line-height:1.9">
+        Principal <b style="float:right">${s.principal}</b><br>
+        Last contact <b class="mono" style="float:right">${s.last}</b></div>
+      ${rail(s.stage)}
+    </div>
+    <div class="sect"><span>How far the conversation has reached</span><span class="mono">${hist.length}</span></div>
+    <div class="card"><div class="trail">${hist.map((l,i)=>`<div class="tr-item ${i===0?'first':''}">
+      <div class="tr-when">${whenTxt(l)}</div>
+      <div class="tr-what">${l.what}</div>
+      <div class="tr-who">Moved to ${STAGES[l.stage]}</div></div>`).join("")||
+      `<div class="empty" style="padding:16px"><strong>Nothing yet</strong>Your first visit starts the trail.</div>`}
+    </div></div>
+    <button class="btn wide go" onclick="visitForm('${s.id}')">Log a visit</button>
+    <button class="btn wide ghost" onclick="closeSheet()">Close</button>`);
+}
+
+/* ---- the visit form ---- */
+function visitForm(id){
+  const s=SCHOOLS.find(x=>x.id===id);
+  cap={selfie:null,loc:null};
+  openSheet(`<h3>${s.name}</h3><div class="sub">${s.city} · proof first, then the outcome</div>
+    <label class="fld"><span>1 · Photo at the school</span>
+      <div class="cap" id="capSelfie">Take a selfie at the gate, or pick one you already have</div>
+      <div class="btn-row" style="margin-top:8px">
+        <button class="btn go" style="flex:1;padding:11px;font-size:13.5px"
+          onclick="document.getElementById('camIn').click()">Open camera</button>
+        <button class="btn ghost" style="flex:1;padding:11px;font-size:13.5px"
+          onclick="document.getElementById('galIn').click()">Choose from gallery</button>
+      </div>
+      <input type="file" id="camIn" accept="image/*" capture="user" hidden onchange="gotSelfie(this)">
+      <input type="file" id="galIn" accept="image/*" hidden onchange="gotSelfie(this)"></label>
+
+    <label class="fld"><span>2 · Current location</span>
+      <div class="cap" id="capLoc" onclick="getLoc()">Tap to stamp where you are right now</div></label>
+
+    <label class="fld"><span>3 · What happened</span>
+      <textarea id="vWhat" placeholder="Principal met, asked for fee structure. Coordinator will confirm the seminar date."></textarea></label>
+
+    <label class="fld"><span>4 · Move the school to</span>
+      <select id="vStage">${STAGES.map((st,i)=>
+        `<option value="${i}" ${i===Math.min(s.stage+1,STAGES.length-1)?"selected":""}>${st}</option>`).join("")}</select></label>
+
+    <div class="sect" style="margin:16px 2px 8px"><span>School details · optional</span>
+      <span class="mono">fill when you know</span></div>
+    <label class="fld"><span>Board</span>
+      <select id="vBoard">
+        <option value="">Not known yet</option>
+        ${["CBSE","State","ICSE","Other"].map(x=>`<option ${s.board===x?"selected":""}>${x}</option>`).join("")}
+      </select></label>
+    <label class="fld"><span>Class 12 strength</span>
+      <input type="text" id="vCls" value="${s.cls12||""}" placeholder="e.g. 240 — leave blank if unsure"></label>
+    <label class="fld"><span>Principal's name</span>
+      <input type="text" id="vPr" value="${s.principal||""}" placeholder="Optional"></label>
+
+    <div class="btn-row">
+      <button class="btn ghost" style="flex:1" onclick="openSchool('${s.id}')">Back</button>
+      <button class="btn fin" style="flex:1" id="vSave" onclick="saveVisit('${s.id}')" disabled>Submit visit</button></div>
+    <div class="note">Submit unlocks once the photo and the location are captured. Without a network the visit waits on the phone and uploads later.</div>`);
+}
+function gotSelfie(inp){
+  const f=inp.files&&inp.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{cap.selfie=r.result;const el=document.getElementById("capSelfie");
+    el.classList.add("done");
+    el.innerHTML=`<img src="${r.result}" alt="Photo at the school"><div>Photo attached · use the buttons below to replace it</div>`;ready();};
+  r.readAsDataURL(f);
+}
+function getLoc(){
+  const el=document.getElementById("capLoc");el.innerHTML="Finding your location…";
+  const show=()=>{el.classList.add("done");
+    el.innerHTML=`Location stamped${cap.loc.sim?" · sample coordinates":""}
+      <div class="coords">${cap.loc.lat.toFixed(5)}, ${cap.loc.lng.toFixed(5)} · ±${cap.loc.acc} m
+      <br>${new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}</div>`;ready();};
+  const ok=p=>{cap.loc={lat:p.coords.latitude,lng:p.coords.longitude,acc:Math.round(p.coords.accuracy)};show();};
+  const bad=()=>{cap.loc={lat:18.5074,lng:73.8077,acc:18,sim:true};show();};
+  navigator.geolocation?navigator.geolocation.getCurrentPosition(ok,bad,{enableHighAccuracy:true,timeout:7000}):bad();
+}
+function ready(){const b=document.getElementById("vSave");if(b)b.disabled=!(cap.selfie&&cap.loc);}
+async function saveVisit(id){
+  const what=document.getElementById("vWhat").value.trim()||"Visit logged";
+  const st=+document.getElementById("vStage").value;
+  const body={action:"logVisit", school_id:id, what_happened:what, stage:st,
+    lat:cap.loc.lat, lng:cap.loc.lng, accuracy:cap.loc.acc, selfie:cap.selfie,
+    board:document.getElementById("vBoard").value,
+    class12:+document.getElementById("vCls").value||"",
+    principal:document.getElementById("vPr").value.trim()};
+  closeSheet();
+  visDate=TODAY_D;
+  await act(body, "Visit submitted. Your manager can see it now.");
+}
+
+/* ---- Screen 3: me ---- */
+function pMe(){
+  const my=LOG.filter(l=>l.bd===ME);
+  const month=monthOf(ME);
+  const me=BDS.find(b=>b.id===ME);
+  const m=mine();
+  const pct=me.target?Math.min(100,Math.round(month.length/me.target*100)):0;
+  const left=Math.max(0,me.target-month.length);
+  return `<div class="card" style="background:var(--ink);color:#fff;border-color:var(--ink)">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+      <div>
+        <div style="font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:19px">${month.length} of ${me.target} visits</div>
+        <div style="font-size:12px;color:#9FB6C2;margin-top:2px">${MONTHS_FULL[new Date().getMonth()]} target set by your manager</div>
+      </div>
+      <span class="mono" style="font-size:24px;color:${pct>=70?'#54D3AE':pct>=40?'#F0C24B':'#FF9270'}">${pct}%</span>
+    </div>
+    <div class="bar" style="background:#2B4453"><i class="${pct>=70?'good':pct>=40?'':'low'}" style="width:${pct}%"></i></div>
+    <div style="font-size:12px;color:#9FB6C2;margin-top:9px">${left?left+" visits to go this month":"Target met."}</div>
+  </div>
+  <div class="sect"><span>${MONTHS_FULL[new Date().getMonth()]} so far</span></div>
+  <div class="card"><div style="font-size:13px;color:var(--ink-2);line-height:2">
+    Visits logged <b class="mono" style="float:right">${my.length}</b><br>
+    Schools assigned <b class="mono" style="float:right">${m.length}</b><br>
+    Principals met <b class="mono" style="float:right">${m.filter(s=>s.stage>=2).length}</b><br>
+    Seminars planned <b class="mono" style="float:right">${m.filter(s=>s.stage>=3).length}</b><br>
+    Not started yet <b class="mono" style="float:right">${m.filter(s=>s.stage===0).length}</b>
+  </div></div>
+  <div class="card"><div style="font-size:13.5px">All visits synced <span class="badge ok" style="float:right">Up to date</span></div>
+  <div class="meta">${MENAME}${SESSION.campus?" · "+SESSION.campus+" campus":""}</div></div>`;
+}
+
+/* ---- visits screen: pick a date, see that day's tracker ---- */
+function pVisits(){
+  const my=LOG.filter(l=>l.bd===ME);
+  if(!my.length) return `<div class="empty"><strong>Nothing logged yet</strong>Open a school and submit your first visit.</div>`;
+  const days=[...new Set(my.map(l=>l.d))].sort().reverse();
+  if(!visDate) visDate=days[0];
+  const strip=days.map(d=>{
+    const n=my.filter(l=>l.d===d).length;
+    return `<button class="daychip" aria-pressed="${d===visDate}" onclick="visDate='${d}';renderP()">
+      <span class="dw">${d===TODAY_D?"Today":dowOf(d)}</span>
+      <b>${dayNum(d)}</b>
+      <span class="dm">${MON[+d.split("-")[1]-1]}</span>
+      <i>${n}</i></button>`;}).join("");
+  const rows=my.filter(l=>l.d===visDate).sort((a,b)=>a.t.localeCompare(b.t));
+
+  return `<div class="daystrip">${strip}</div>
+  <label class="fld" style="margin-bottom:6px"><span>Or pick any date</span>
+    <input type="date" value="${visDate}" max="${TODAY_D}" onchange="visDate=this.value;renderP()"></label>
+
+  <div class="sect"><span>${longD(visDate)}</span><span class="mono">${rows.length} visits</span></div>
+
+  ${rows.length? `<div class="card"><div class="trail">${rows.map((l,i)=>{
+      const s=SCHOOLS.find(x=>x.id===l.school)||{};
+      return `<div class="tr-item ${i===rows.length-1?'first':''}">
+        <div class="tr-when">${l.t} · ${STAGES[l.stage]}</div>
+        <div class="tr-what">${s.name||"—"}</div>
+        <div class="tr-who">${l.what}<br>${l.loc} · selfie attached</div>
+      </div>`;}).join("")}</div></div>`
+    : `<div class="empty"><strong>No visits on this date</strong>Nothing was logged that day. Pick another date above.</div>`}
+
+  <div class="note">Your manager sees this same trail, on the same date, in the same order.</div>`;
+}
+
+/* sheet helpers */
+function openSheet(h){document.getElementById("sheet").innerHTML=`<div class="grab"></div>`+h;
+  document.getElementById("sheetWrap").classList.add("open");}
+function closeSheet(){document.getElementById("sheetWrap").classList.remove("open");}
+
+(function(){let m=12;setInterval(()=>{m=(m+1)%60;
+  document.getElementById("clock").textContent="10:"+String(m).padStart(2,"0");},20000);})();
+
+renderLoginHints();boot();
+</script>
+</body>
+</html>
