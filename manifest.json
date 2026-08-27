@@ -7,11 +7,14 @@
   "scope": "/alta-bd-tracker/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#12212B",
-  "theme_color": "#12212B",
+  "background_color": "#0D1E56",
+  "theme_color": "#0D1E56",
   "lang": "en-IN",
   "dir": "ltr",
-  "categories": ["business", "productivity"],
+  "categories": [
+    "business",
+    "productivity"
+  ],
   "icons": [
     {
       "src": "icon-192.png",

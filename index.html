@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <title>Alta School Connect — BD Tracker</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#12212B">
+<meta name="theme-color" content="#0D1E56">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
@@ -16,8 +16,21 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#12212B;--ink-2:#33505F;--ink-3:#7B95A3;--surface:#fff;--field:#E7EEF1;--field-2:#F4F8F9;
---line:#D3DFE4;--pin:#E4572E;--verified:#17876B;--signal:#E0A106}
+:root{
+  --ink:#0D1E56;          /* Alta navy */
+  --ink-2:#44568F;
+  --ink-3:#8A97C0;
+  --surface:#fff;
+  --field:#E9EEF9;
+  --field-2:#F5F8FD;
+  --line:#D6DEF0;
+  --pin:#0C7FA3;          /* deep cyan, safe under white text */
+  --accent:#3BC3E2;       /* Alta cyan, for highlights */
+  --verified:#2FA36F;
+  --signal:#B07E00;
+  --dark-2:#172C6B;       /* raised navy */
+  --dark-3:#2D3F7A;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'IBM Plex Sans',system-ui,sans-serif;color:var(--ink);background:var(--ink);
   padding:20px 14px 44px;display:flex;flex-direction:column;align-items:center}
@@ -25,9 +38,9 @@ body{font-family:'IBM Plex Sans',system-ui,sans-serif;color:var(--ink);backgroun
 .head{width:100%;max-width:1040px;margin-bottom:14px}
 .head h1{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:15px;font-weight:700;
   letter-spacing:.03em;text-transform:uppercase;color:#fff}
-.head p{font-size:11.5px;color:#7B95A3;margin-top:3px;line-height:1.55;max-width:620px}
-.switch{display:inline-flex;gap:5px;margin-top:12px;background:#1B303D;padding:5px;border-radius:11px}
-.switch button{border:0;cursor:pointer;padding:9px 18px;border-radius:7px;background:transparent;color:#9FB6C2;
+.head p{font-size:11.5px;color:var(--ink-3);margin-top:3px;line-height:1.55;max-width:620px}
+.switch{display:inline-flex;gap:5px;margin-top:12px;background:var(--dark-2);padding:5px;border-radius:11px}
+.switch button{border:0;cursor:pointer;padding:9px 18px;border-radius:7px;background:transparent;color:#A9B6DC;
   font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:12.5px;
   letter-spacing:.04em;text-transform:uppercase}
 .switch button[aria-pressed="true"]{background:var(--field);color:var(--ink)}
@@ -71,7 +84,7 @@ label.fld>span{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spac
 /* stage rail */
 .rail{display:flex;gap:3px;margin-top:9px}
 .rail i{flex:1;height:4px;border-radius:2px;background:var(--line)}
-.rail i.on{background:var(--ink)}.rail i.now{background:var(--pin)}
+.rail i.on{background:var(--ink)}.rail i.now{background:var(--accent)}
 .stage-txt{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-2);margin-top:6px;
   letter-spacing:.04em;text-transform:uppercase}
 
@@ -81,21 +94,21 @@ label.fld>span{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spac
 .tr-item{position:relative;padding:0 0 15px 0}
 .tr-item:before{content:"";position:absolute;left:-19px;top:4px;width:11px;height:11px;border-radius:50%;
   background:var(--field);border:2px solid var(--line)}
-.tr-item.first:before{background:var(--pin);border-color:var(--pin)}
+.tr-item.first:before{background:var(--accent);border-color:var(--accent)}
 .tr-when{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-3);letter-spacing:.06em}
 .tr-what{font-size:13.5px;font-weight:500;line-height:1.4;margin-top:2px}
 .tr-who{font-size:11.5px;color:var(--ink-3);margin-top:3px;line-height:1.5}
 
 /* console */
 .console{width:100%;max-width:1040px;background:var(--field-2);border-radius:16px;overflow:hidden;
-  border:1px solid #2B4453;box-shadow:0 22px 55px rgba(0,0,0,.42);display:none}
+  border:1px solid var(--dark-3);box-shadow:0 22px 55px rgba(0,0,0,.42);display:none}
 .console.on{display:block}
 .c-top{background:var(--ink);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;
   align-items:center;gap:14px;flex-wrap:wrap}
 .c-top .brand{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:700;font-size:17px}
-.c-top .who{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:#7B95A3;letter-spacing:.05em}
-.c-nav{display:flex;gap:2px;background:#1B303D;padding:4px;border-radius:9px}
-.c-nav button{border:0;background:transparent;color:#9FB6C2;cursor:pointer;padding:7px 14px;border-radius:6px;
+.c-top .who{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-3);letter-spacing:.05em}
+.c-nav{display:flex;gap:2px;background:var(--dark-2);padding:4px;border-radius:9px}
+.c-nav button{border:0;background:transparent;color:#A9B6DC;cursor:pointer;padding:7px 14px;border-radius:6px;
   font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:12px;letter-spacing:.04em;
   text-transform:uppercase}
 .c-nav button[aria-selected="true"]{background:var(--field);color:var(--ink)}
@@ -123,7 +136,7 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--pin);cursor:point
 .actionbar{position:sticky;bottom:0;margin-top:12px;background:var(--ink);color:#fff;border-radius:11px;
   padding:12px 15px;display:flex;gap:11px;align-items:center;flex-wrap:wrap}
 .actionbar .cnt{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:700;font-size:16px}
-.actionbar .hint{font-size:11.5px;color:#9FB6C2;flex:1;min-width:150px}
+.actionbar .hint{font-size:11.5px;color:#A9B6DC;flex:1;min-width:150px}
 .back{background:none;border:0;cursor:pointer;color:var(--ink-2);font-size:12.5px;padding:0 0 10px;
   font-family:'IBM Plex Mono',monospace;letter-spacing:.05em}
 
@@ -138,13 +151,13 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--pin);cursor:point
 
 /* phone */
 .phone{width:100%;max-width:400px;height:790px;background:var(--field-2);border-radius:28px;overflow:hidden;
-  position:relative;display:none;flex-direction:column;border:1px solid #2B4453;
+  position:relative;display:none;flex-direction:column;border:1px solid var(--dark-3);
   box-shadow:0 22px 55px rgba(0,0,0,.42)}
 .phone.on{display:flex}
-.statusbar{background:var(--ink);color:#B9CCD6;font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+.statusbar{background:var(--ink);color:#C2CCEA;font-family:'IBM Plex Mono',monospace;font-size:10.5px;
   padding:9px 18px 6px;display:flex;justify-content:space-between;flex:none}
 .p-top{background:var(--ink);color:#fff;padding:4px 18px 14px;flex:none}
-.p-top .eb{font-family:'IBM Plex Mono',monospace;font-size:10px;color:#7B95A3;text-transform:uppercase;
+.p-top .eb{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink-3);text-transform:uppercase;
   letter-spacing:.13em;margin-bottom:3px}
 .p-top h2{font-family:'IBM Plex Sans Condensed',sans-serif;font-size:23px;font-weight:700}
 .p-scroll{flex:1;overflow-y:auto;padding:15px 14px 26px}
@@ -155,8 +168,8 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--pin);cursor:point
   font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 .tabbar button[aria-selected="true"]{color:var(--ink)}
 .tabbar button[aria-selected="true"] .g{background:var(--ink);color:#fff}
-.g{width:26px;height:26px;border-radius:8px;background:var(--field);display:grid;place-items:center;
-  font-size:12px;font-family:'IBM Plex Mono',monospace}
+.g{width:30px;height:30px;border-radius:9px;background:var(--field);display:grid;place-items:center}
+.g svg{width:17px;height:17px}
 .sheet-wrap{position:absolute;inset:0;background:rgba(18,33,43,.52);display:none;align-items:flex-end;z-index:40}
 .sheet-wrap.open{display:flex}
 .sheet{width:100%;max-height:92%;overflow-y:auto;background:var(--field-2);border-radius:20px 20px 0 0;
@@ -176,9 +189,13 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--pin);cursor:point
 .cap img{width:100%;max-height:150px;object-fit:cover;border-radius:8px;margin-bottom:8px}
 .coords{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-2);line-height:1.6;
   background:var(--field);border-radius:8px;padding:9px;margin-top:8px;word-break:break-all}
+.lg-mark{height:64px;width:auto;display:block;margin:0 auto 12px}
+.c-mark{height:30px;width:auto;flex:none}
+.p-mark{height:34px;width:auto;flex:none;margin-top:1px}
+@media (max-width:640px){.lg-mark{height:72px}}
 /* login */
 .login{width:100%;max-width:400px;background:var(--field-2);border-radius:20px;padding:30px 26px 26px;
-  border:1px solid #2B4453;box-shadow:0 22px 55px rgba(0,0,0,.42);display:none;text-align:center}
+  border:1px solid var(--dark-3);box-shadow:0 22px 55px rgba(0,0,0,.42);display:none;text-align:center}
 .login.on{display:block}
 .lg-brand{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;
   color:var(--ink-3);margin-bottom:14px}
@@ -199,17 +216,17 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--pin);cursor:point
 .lg-row:hover{color:var(--pin)}
 .lg-row .pin{font-family:'IBM Plex Mono',monospace;color:var(--ink-3)}
 /* session bar */
-.sessionbar{display:flex;gap:11px;align-items:center;margin-top:13px;background:#1B303D;padding:9px 9px 9px 14px;
+.sessionbar{display:flex;gap:11px;align-items:center;margin-top:13px;background:var(--dark-2);padding:9px 9px 9px 14px;
   border-radius:11px;flex-wrap:wrap}
 .sessionbar .nm{font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:14px;color:#fff}
 .sessionbar .rl{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;
-  color:#7B95A3;margin-left:8px}
+  color:var(--ink-3);margin-left:8px}
 .sessionbar .sp{flex:1}
 .sessionbar button{border:0;background:var(--field);color:var(--ink);cursor:pointer;padding:7px 14px;
   border-radius:8px;font-family:'IBM Plex Sans Condensed',sans-serif;font-weight:600;font-size:12.5px}
 /* selfie proof tiles */
 .pf-img{width:64px;height:64px;flex:none;border-radius:10px;object-fit:cover;border:1px solid var(--line)}
-.pf-img.ph,.pf-big.ph{background:linear-gradient(135deg,#33505F,#12212B);color:#7B95A3;display:grid;
+.pf-img.ph,.pf-big.ph{background:linear-gradient(135deg,var(--dark-3),var(--ink));color:var(--ink-3);display:grid;
   place-items:center;font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-align:center;
   line-height:1.35;letter-spacing:.05em}
 .pf-big{width:100%;max-height:280px;object-fit:cover;border-radius:12px}
@@ -225,11 +242,11 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--pin);cursor:point
   line-height:1.15;color:var(--ink)}
 .daychip .dm{display:block;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--ink-3)}
 .daychip i{position:absolute;top:-5px;right:-5px;min-width:17px;height:17px;border-radius:9px;
-  background:var(--pin);color:#fff;font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:9.5px;
+  background:var(--accent);color:#08283A;color:#fff;font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:9.5px;
   display:grid;place-items:center;padding:0 4px}
 .daychip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink)}
 .daychip[aria-pressed="true"] b{color:#fff}
-.daychip[aria-pressed="true"] .dw,.daychip[aria-pressed="true"] .dm{color:#9FB6C2}
+.daychip[aria-pressed="true"] .dw,.daychip[aria-pressed="true"] .dm{color:#A9B6DC}
 .daychip:focus-visible{outline:2px solid var(--signal);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-height:880px){.phone{height:min(790px,84vh)}.c-body{max-height:min(700px,70vh)}}
@@ -269,9 +286,10 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--pin);cursor:point
 
 <div class="login" id="login">
   <div class="login-card">
-    <div class="lg-brand">Alta School Connect</div>
+    <img class="lg-mark" src="data:image/png;base64,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" alt="Alta">
+    <div class="lg-brand">School Connect</div>
     <h2>Sign in</h2>
-    <p class="lg-sub">Enter the 4-digit PIN your manager gave you.</p>
+    <p class="lg-sub">Enter your 4-digit PIN to sign in.</p>
     <input class="pinbox" id="pinIn" inputmode="numeric" maxlength="4" placeholder="••••"
       autocomplete="off" onkeydown="if(event.key==='Enter')doLogin()" oninput="clearPinErr()">
     <button class="btn wide go" onclick="doLogin()">Sign in</button>
@@ -282,8 +300,11 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--pin);cursor:point
 
 <div class="console on" id="console">
   <div class="c-top">
-    <div><div class="brand">School Connect Console</div>
-      <div class="who" id="cWho">—</div></div>
+    <div style="display:flex;gap:12px;align-items:center">
+      <img class="c-mark" src="data:image/png;base64,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" alt="Alta">
+      <div><div class="brand">School Connect Console</div>
+        <div class="who" id="cWho">—</div></div>
+    </div>
     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <div class="c-nav" id="cnav"></div>
       <button class="btn ghost" style="padding:7px 13px;font-size:12.5px" onclick="refresh()">Refresh</button>
@@ -294,8 +315,8 @@ input[type=checkbox]{width:16px;height:16px;accent-color:var(--pin);cursor:point
 </div>
 
 <div class="phone" id="phone">
-  <div class="statusbar"><span id="clock">10:12</span><span>GPS ON · 4G · 78%</span></div>
-  <div class="p-top"><div class="eb" id="pEb">&nbsp;</div><h2 id="pTitle">My schools</h2></div>
+  <div class="statusbar"><span id="clock"></span><span id="syncState">Up to date</span></div>
+  <div class="p-top"><div style="display:flex;gap:10px;align-items:flex-start"><img class="p-mark" src="data:image/png;base64,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" alt="Alta"><div style="flex:1;min-width:0"><div class="eb" id="pEb">&nbsp;</div><h2 id="pTitle">My schools</h2></div></div></div>
   <div class="p-scroll" id="pScreen"></div>
   <div class="tabbar" id="ptabs"></div>
   <div class="sheet-wrap" id="sheetWrap" onclick="if(event.target===this)closeSheet()">
@@ -368,7 +389,7 @@ async function act(body, okMsg){
     if(okMsg) (SESSION.role==="bdm"?toast:alert)(okMsg);
     return r.result||{};
   }catch(e){
-    alert("Could not reach the server. Check your connection and try again.");
+    alert("Could not reach the server.\n\nYour signal may be weak. Stay on this screen and try again \u2014 nothing has been lost.");
     return null;
   }finally{ BUSY=false; busy(false); }
 }
@@ -378,7 +399,9 @@ function busy(on){
 
 let ctab="team", ptab="schools", selBd=null, picked=new Set(), F={city:"",own:""};
 let cap={selfie:null,loc:null}, q="", visDate=null, sq="", sCity="", mgrDate=null, bdDate=null, mMonth=null;
-const TODAY_D=(function(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");})();
+function todayStr(){const d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+let TODAY_D=todayStr();
 
 /* date helpers */
 const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
@@ -426,7 +449,14 @@ async function doLogin(){
     if(!r.ok){ pinError(r.error||"That PIN is not recognised."); return; }
     TOKEN=r.token; localStorage.setItem("alta_token",TOKEN);
     document.getElementById("pinIn").value="";
-    await boot();
+    if(r.data){                       // signIn already returned everything
+      applyData(r.data);
+      ctab="team"; ptab="schools"; selBd=null;
+      mgrDate=null; bdDate=null; mMonth=null; visDate=null;
+      applySession();
+    } else {
+      await boot();
+    }
   }catch(e){
     pinError("Could not reach the server. Check your connection.");
   }finally{
@@ -467,7 +497,7 @@ function applySession(){
   document.getElementById("sessionbar").style.display = SESSION ? "flex" : "none";
   document.getElementById("sessionbar").innerHTML = SESSION
     ? `<span class="nm">${SESSION.name}</span><span class="rl">${inMgr?"Manager \u00b7 "+(SESSION.cities||[]).join(", "):"BDM \u00b7 "+(SESSION.campus||"")}</span>
-       <span class="sp"></span><button onclick="refresh()">Refresh</button><button onclick="signOut()">Sign out</button>`
+       <span class="sp"></span>`
     : "";
   if(!SESSION){ renderLoginHints(); return; }
   if(inMgr){ document.getElementById("cWho").textContent=SESSION.name+" \u00b7 Regional BD Manager"; renderC(); }
@@ -624,11 +654,11 @@ function cBdDetail(){
       <div>
         <div style="font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:19px">
           ${month.length} of ${b.target} visits</div>
-        <div style="font-size:12px;color:#9FB6C2;margin-top:2px">${MONTHS_FULL[new Date().getMonth()]} target · ${b.target-month.length>0?b.target-month.length+" to go":"target met"}</div>
+        <div style="font-size:12px;color:#A9B6DC;margin-top:2px">${MONTHS_FULL[new Date().getMonth()]} target · ${b.target-month.length>0?b.target-month.length+" to go":"target met"}</div>
       </div>
-      <span class="mono" style="font-size:24px;color:${pct>=70?'#54D3AE':pct>=40?'#F0C24B':'#FF9270'}">${pct}%</span>
+      <span class="mono" style="font-size:24px;color:${pct>=70?'#5FE0AC':pct>=40?'#FCC032':'#7ED9F2'}">${pct}%</span>
     </div>
-    <div class="bar" style="background:#2B4453"><i class="${pct>=70?'good':pct>=40?'':'low'}" style="width:${pct}%"></i></div>
+    <div class="bar" style="background:var(--dark-3)"><i class="${pct>=70?'good':pct>=40?'':'low'}" style="width:${pct}%"></i></div>
   </div>
 
   <div class="kpis">
@@ -1014,12 +1044,12 @@ function cMonthly(){
       <div>
         <div style="font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:21px">
           ${reached.length} schools reached in ${monthLabel(mMonth)}</div>
-        <div style="font-size:12px;color:#9FB6C2;margin-top:3px">
+        <div style="font-size:12px;color:#A9B6DC;margin-top:3px">
           ${logs.length} visits across ${activeBd} of ${TEAM().length} BDMs · team target ${totalTarget}</div>
       </div>
-      <span class="mono" style="font-size:26px;color:${pctT>=70?'#54D3AE':pctT>=40?'#F0C24B':'#FF9270'}">${pctT}%</span>
+      <span class="mono" style="font-size:26px;color:${pctT>=70?'#5FE0AC':pctT>=40?'#FCC032':'#7ED9F2'}">${pctT}%</span>
     </div>
-    <div class="bar" style="background:#2B4453"><i class="${pctT>=70?'good':pctT>=40?'':'low'}" style="width:${Math.min(100,pctT)}%"></i></div>
+    <div class="bar" style="background:var(--dark-3)"><i class="${pctT>=70?'good':pctT>=40?'':'low'}" style="width:${Math.min(100,pctT)}%"></i></div>
   </div>
 
   <div class="kpis">
@@ -1075,7 +1105,7 @@ function cMonthly(){
 }
 
 /* ================= BD APP — 3 screens ================= */
-const PTABS=[["schools","⌂","My schools"],["visits","◫","My visits"],["me","●","Me"]];
+const PTABS=[["schools",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 4l9 6.5"/><path d="M5 9.7V20h14V9.7"/><path d="M10 20v-5h4v5"/></svg>`,"My schools"],["visits",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 4v3M16 4v3M4 10h16"/><path d="m9 15 2 2 4-4"/></svg>`,"My visits"],["me",`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5"/></svg>`,"Me"]];
 const PTITLES=()=>({
   schools:[(SESSION&&SESSION.name||"")+" · BDM"+((SESSION&&SESSION.campus)?" · "+SESSION.campus:""),"My schools"],
   visits:["What I've logged","My visits"],
@@ -1191,13 +1221,46 @@ function visitForm(id){
       <button class="btn fin" style="flex:1" id="vSave" onclick="saveVisit('${s.id}')" disabled>Submit visit</button></div>
     <div class="note">Submit unlocks once the photo and the location are captured. Without a network the visit waits on the phone and uploads later.</div>`);
 }
-function gotSelfie(inp){
-  const f=inp.files&&inp.files[0];if(!f)return;
-  const r=new FileReader();
-  r.onload=()=>{cap.selfie=r.result;const el=document.getElementById("capSelfie");
+/* phone cameras produce 3-8 MB files. Apps Script cannot take a payload that big,
+   so the photo is resized in the browser before it is ever sent. */
+function shrinkImage(file, maxDim, quality){
+  return new Promise((resolve, reject)=>{
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{
+      let w=img.naturalWidth, h=img.naturalHeight;
+      const scale=Math.min(1, maxDim/Math.max(w,h));
+      w=Math.round(w*scale); h=Math.round(h*scale);
+      const c=document.createElement("canvas");
+      c.width=w; c.height=h;
+      c.getContext("2d").drawImage(img,0,0,w,h);
+      URL.revokeObjectURL(url);
+      try{ resolve(c.toDataURL("image/jpeg", quality)); }
+      catch(e){ reject(e); }
+    };
+    img.onerror=()=>{ URL.revokeObjectURL(url); reject(new Error("Could not read that photo")); };
+    img.src=url;
+  });
+}
+
+async function gotSelfie(inp){
+  const f=inp.files&&inp.files[0]; if(!f) return;
+  const el=document.getElementById("capSelfie");
+  el.innerHTML="Preparing the photo\u2026";
+  try{
+    let data=await shrinkImage(f, 1100, 0.7);
+    if(data.length>1200000) data=await shrinkImage(f, 800, 0.6);   // stubborn ones get a second pass
+    cap.selfie=data;
+    const kb=Math.round(data.length*0.75/1024);
     el.classList.add("done");
-    el.innerHTML=`<img src="${r.result}" alt="Photo at the school"><div>Photo attached · use the buttons below to replace it</div>`;ready();};
-  r.readAsDataURL(f);
+    el.innerHTML=`<img src="${data}" alt="Photo at the school"><div>Photo attached \u00b7 ${kb} KB \u00b7 use the buttons below to replace it</div>`;
+    ready();
+  }catch(e){
+    el.classList.remove("done");
+    el.innerHTML="Could not read that photo. Try taking it again.";
+    cap.selfie=null; ready();
+  }
+  inp.value="";   // let the same file be picked again
 }
 function getLoc(){
   const el=document.getElementById("capLoc");el.innerHTML="Finding your location…";
@@ -1211,6 +1274,7 @@ function getLoc(){
 }
 function ready(){const b=document.getElementById("vSave");if(b)b.disabled=!(cap.selfie&&cap.loc);}
 async function saveVisit(id){
+  const btn=document.getElementById("vSave");
   const what=document.getElementById("vWhat").value.trim()||"Visit logged";
   const st=+document.getElementById("vStage").value;
   const body={action:"logVisit", school_id:id, what_happened:what, stage:st,
@@ -1218,9 +1282,12 @@ async function saveVisit(id){
     board:document.getElementById("vBoard").value,
     class12:+document.getElementById("vCls").value||"",
     principal:document.getElementById("vPr").value.trim()};
-  closeSheet();
+
+  if(btn){ btn.disabled=true; btn.textContent="Uploading\u2026"; }
   visDate=TODAY_D;
-  await act(body, "Visit submitted. Your manager can see it now.");
+  const ok=await act(body, "Visit submitted. Your manager can see it now.");
+  if(ok){ closeSheet(); }
+  else if(btn){ btn.disabled=false; btn.textContent="Submit visit"; }
 }
 
 /* ---- Screen 3: me ---- */
@@ -1235,12 +1302,12 @@ function pMe(){
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
       <div>
         <div style="font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:19px">${month.length} of ${me.target} visits</div>
-        <div style="font-size:12px;color:#9FB6C2;margin-top:2px">${MONTHS_FULL[new Date().getMonth()]} target set by your manager</div>
+        <div style="font-size:12px;color:#A9B6DC;margin-top:2px">${MONTHS_FULL[new Date().getMonth()]} target set by your manager</div>
       </div>
-      <span class="mono" style="font-size:24px;color:${pct>=70?'#54D3AE':pct>=40?'#F0C24B':'#FF9270'}">${pct}%</span>
+      <span class="mono" style="font-size:24px;color:${pct>=70?'#5FE0AC':pct>=40?'#FCC032':'#7ED9F2'}">${pct}%</span>
     </div>
-    <div class="bar" style="background:#2B4453"><i class="${pct>=70?'good':pct>=40?'':'low'}" style="width:${pct}%"></i></div>
-    <div style="font-size:12px;color:#9FB6C2;margin-top:9px">${left?left+" visits to go this month":"Target met."}</div>
+    <div class="bar" style="background:var(--dark-3)"><i class="${pct>=70?'good':pct>=40?'':'low'}" style="width:${pct}%"></i></div>
+    <div style="font-size:12px;color:#A9B6DC;margin-top:9px">${left?left+" visits to go this month":"Target met."}</div>
   </div>
   <div class="sect"><span>${MONTHS_FULL[new Date().getMonth()]} so far</span></div>
   <div class="card"><div style="font-size:13px;color:var(--ink-2);line-height:2">
@@ -1297,8 +1364,31 @@ function openSheet(h){document.getElementById("sheet").innerHTML=`<div class="gr
   document.getElementById("sheetWrap").classList.add("open");}
 function closeSheet(){document.getElementById("sheetWrap").classList.remove("open");}
 
-(function(){let m=12;setInterval(()=>{m=(m+1)%60;
-  document.getElementById("clock").textContent="10:"+String(m).padStart(2,"0");},20000);})();
+/* keep the clock, the date and the data honest while the app sits open for days */
+function paintClock(){
+  const d=new Date();
+  const el=document.getElementById("clock");
+  if(el) el.textContent=DOW[d.getDay()]+" "+d.getDate()+" "+MON[d.getMonth()]+" · "
+    +String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}
+function rolloverCheck(){
+  const t=todayStr();
+  if(t!==TODAY_D){                      // midnight passed while the app was open
+    TODAY_D=t;
+    mgrDate=null; bdDate=null; mMonth=null; visDate=null;
+    if(SESSION){ SESSION.role==="manager"?renderC():renderP(); }
+  }
+  paintClock();
+}
+paintClock();
+setInterval(rolloverCheck, 30000);
+
+/* coming back to the app should show today's data, not yesterday's */
+document.addEventListener("visibilitychange", ()=>{
+  if(document.hidden) return;
+  rolloverCheck();
+  if(SESSION) refresh();
+});
 
 renderLoginHints();boot();
 
