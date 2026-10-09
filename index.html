@@ -485,6 +485,7 @@ function applyData(d){
     school:v.school_id, bd:v.bd_id, d:asDate(v.date), t:asTime(v.time),
     what:v.what_happened||"", stage:fixStage(v.stage), wasRevisit:String(v.was_revisit||"").toUpperCase()==="YES",
     loc:(v.lat!==""&&v.lat!=null)?(Number(v.lat).toFixed(4)+", "+Number(v.lng).toFixed(4)):"\u2014",
+    lat:v.lat, lng:v.lng,
     selfie:v.selfie_url||""
   })).sort((a,b)=> (b.d+b.t).localeCompare(a.d+a.t));
 }
@@ -544,15 +545,29 @@ const revisitsDone  = list => new Set(list.filter(l=>l.wasRevisit).map(l=>l.scho
 /* A workshop being done is the school's current state, not something recorded on
    one visit. Counting visit rows missed every workshop that was marked later, or
    corrected from the portal — which is exactly how they were getting lost. */
-const workshopsDoneFor = bdId => POOL().filter(s=>s.owner===bdId && s.stage===S_DONE).length;
+/* A workshop being done is the school's state, but it happened on a date. Counting
+   state alone made every September workshop reappear in October, so the month comes
+   from the workshop date, falling back to the visit that marked it done. */
+function wsMonthOf(sc){
+  if(sc.wsDate) return sc.wsDate.slice(0,7);
+  const v=LOG.filter(l=>l.school===sc.id && l.stage===S_DONE).sort((a,b)=>b.d.localeCompare(a.d))[0];
+  return v ? v.d.slice(0,7) : "";
+}
+/* Always this calendar month. Monthly progress passes its own month explicitly, so
+   picking an old month there can never leak into today's report. */
+const curMonth = () => TODAY_D.slice(0,7);
+
+const doneInMonth = (bdId, mon) => POOL().filter(s=>
+  s.stage===S_DONE && (bdId===null||s.owner===bdId) && wsMonthOf(s)===mon);
+
+const workshopsDoneFor = (bdId, mon) => doneInMonth(bdId, mon||curMonth()).length;
 
 /* Leads are the students who actually turned up to a workshop. They live on the
    school, so a count entered later — or corrected — is picked up everywhere. */
-const leadsFor = bdId => POOL().filter(s=>s.owner===bdId && s.stage===S_DONE)
-                               .reduce((a,s)=>a+(+s.leads||0),0);
-const leadsAll = () => POOL().filter(s=>s.stage===S_DONE).reduce((a,s)=>a+(+s.leads||0),0);
+const leadsFor = (bdId, mon) => doneInMonth(bdId, mon||curMonth()).reduce((a,s)=>a+(+s.leads||0),0);
+const leadsAll = (mon) => doneInMonth(null, mon||curMonth()).reduce((a,s)=>a+(+s.leads||0),0);
 const leadsTargetAll = () => TEAM().reduce((a,b)=>a+(+b.leadsTarget||0),0);
-const workshopsDoneAll = () => POOL().filter(s=>s.stage===S_DONE).length;
+const workshopsDoneAll = (mon) => doneInMonth(null, mon||curMonth()).length;
 
 /* kept for the day view: of the schools touched on a given day, how many stand
    at Workshop done right now */
@@ -885,6 +900,8 @@ function cBdDetail(){
   const pct=b.target?Math.min(100,Math.round(mv/b.target*100)):0;
 
   return `<button class="back" onclick="selBd=null;renderC()">← All BDMs</button>
+  <div class="toolbar" style="justify-content:flex-end;margin-bottom:10px">
+    <button class="btn" onclick="exportForm('${selBd}')">Export ${b.name}'s visits</button></div>
   <div style="display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
     <div class="avatar ${visitedToday(selBd)?'on':''}" style="width:44px;height:44px;font-size:15px">${initials(b.name)}</div>
     <div style="flex:1;min-width:150px">
@@ -1127,6 +1144,7 @@ function cSchools(){
   <div class="toolbar">
     <button class="btn" onclick="addSchoolForm()">Add a school</button>
     <button class="btn go" onclick="importForm(null)">Upload school list</button>
+    <button class="btn" onclick="exportForm()">Export visits</button>
   </div>
   <div class="tablewrap" id="schoolTable">${schoolRows(applyF2(POOL()))}</div>
   <div class="note">Assignment happens in the BDM team tab — open a BDM and use Assign schools.</div>`;
@@ -1246,6 +1264,100 @@ async function doImport(toBd){
 }
 /* managers are often days behind the field, so let them correct a school here
    instead of going into the sheet */
+/* ---- Export: one BDM's visits as a spreadsheet, for any date range ---- */
+function exportForm(preBd){
+  const today=TODAY_D, first=today.slice(0,8)+"01";
+  openModal(`<h3>Export visits</h3>
+    <div class="sub">Downloads a CSV you can open in Excel. One row per visit, with the
+      school, the stage, the remarks and the dates.</div>
+
+    <label class="fld"><span>BDM</span>
+      <select id="exBd">
+        <option value="">Everyone</option>
+        ${TEAM().map(b=>`<option value="${b.id}" ${preBd===b.id?"selected":""}>${b.name} \u00b7 ${b.campus}</option>`).join("")}
+      </select></label>
+
+    <div class="toolbar">
+      <label class="fld"><span>From</span><input type="date" id="exFrom" value="${first}"></label>
+      <label class="fld"><span>To</span><input type="date" id="exTo" value="${today}"></label>
+    </div>
+
+    <div class="card" style="background:var(--field);border:0">
+      <div style="font-size:12.5px;color:var(--ink-2);line-height:1.6" id="exCount">\u2014</div></div>
+
+    <div class="btn-row">
+      <button class="btn ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn go" id="exGo" onclick="runExport()">Download CSV</button></div>
+    <div class="note">Dates are the visit dates. Workshop and revisit dates come from the school.</div>`);
+  ["exBd","exFrom","exTo"].forEach(id=>{
+    const e=document.getElementById(id); if(e) e.addEventListener("change", exPreview);
+  });
+  exPreview();
+}
+
+function exRows(){
+  const bd=(document.getElementById("exBd")||{}).value||"";
+  const from=(document.getElementById("exFrom")||{}).value||"";
+  const to=(document.getElementById("exTo")||{}).value||"";
+  return LOGS().filter(l=>
+    (!bd || l.bd===bd) && (!from || l.d>=from) && (!to || l.d<=to)
+  ).sort((a,b)=>(a.d+a.t).localeCompare(b.d+b.t));
+}
+
+function exPreview(){
+  const el=document.getElementById("exCount"); if(!el) return;
+  const rows=exRows();
+  const schools=new Set(rows.map(r=>r.school)).size;
+  el.innerHTML = rows.length
+    ? `<b>${rows.length}</b> visits across <b>${schools}</b> schools in this range.`
+    : `No visits in this range.`;
+}
+
+/* a cell is quoted only when it has to be, so the file stays readable */
+function csvCell(v){
+  const t=String(v===undefined||v===null?"":v);
+  return /[",\n]/.test(t) ? '"'+t.replace(/"/g,'""')+'"' : t;
+}
+
+function runExport(){
+  const rows=exRows();
+  if(!rows.length){ toast("Nothing to export in that range."); return; }
+  const head=["Visit date","Time","BDM","Campus","School","City","Stage","Remarks",
+              "Workshop planned","Workshop done","Revisit asked","Workshop date","Revisit date",
+              "Students at workshop","Class 12 strength","Principal","Location"];
+  const body=rows.map(l=>{
+    const sc=schoolOf(l.school)||{};
+    const b=BDS.find(x=>x.id===l.bd)||{};
+    const yes=n=>sc.stage===n?"Yes":"";
+    return [l.d, l.t, b.name||l.bd, b.campus||"", sc.name||"", sc.city||"",
+      STAGES[sc.stage]||"", l.what||"",
+      yes(S_PLANNED), yes(S_DONE), yes(S_REVISIT),
+      sc.wsDate||"", sc.rvDate||"",
+      sc.stage===S_DONE?(sc.leads||0):"",
+      sc.cls12||"", sc.principal||"",
+      (l.lat&&l.lng)?("https://www.google.com/maps?q="+l.lat+","+l.lng):""].map(csvCell).join(",");
+  });
+  /* the BOM makes Excel read the file as UTF-8, so school names are not mangled */
+  const csv="\ufeff"+[head.map(csvCell).join(",")].concat(body).join("\r\n");
+  const bdName_=(document.getElementById("exBd")||{}).value;
+  const who=bdName_?(BDS.find(x=>x.id===bdName_)||{}).name:"all-bdms";
+  const from=(document.getElementById("exFrom")||{}).value||"start";
+  const to=(document.getElementById("exTo")||{}).value||"today";
+  const name=`alta-visits-${String(who).toLowerCase().replace(/\s+/g,"-")}-${from}-to-${to}.csv`;
+  try{
+    const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download=name;
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(url); a.remove(); }, 1500);
+    closeModal();
+    toast(rows.length+" visits exported.");
+  }catch(e){
+    toast("Could not build the file. Try a shorter date range.");
+  }
+}
+
 function editSchoolForm(id){
   const sc=SCHOOLS.find(x=>x.id===id);
   if(!sc) return;
@@ -1764,7 +1876,7 @@ function cMonthly(){
   const atStage = ids => st => ids.filter(id=>schoolOf(id).stage===st).length;
   const mtdAt = atStage(reached);
   const mtdPlanned = mtdAt(S_PLANNED);
-  const mtdWsDone  = workshopsDoneAll();
+  const mtdWsDone  = workshopsDoneAll(mMonth);
   const mtdRvDone  = revisitsDone(logs);
 
   const today      = LOGS().filter(l=>l.d===TODAY_D);
@@ -1790,7 +1902,7 @@ function cMonthly(){
         <div style="font-family:'IBM Plex Sans Condensed';font-weight:700;font-size:21px">
           ${reached.length} schools reached in ${monthLabel(mMonth)}</div>
         <div style="font-size:12px;color:#A9B6DC;margin-top:3px">
-          ${teamVisits} visits · ${leadsAll()} leads · team visit target ${totalTarget}</div>
+          ${teamVisits} visits · ${leadsAll(mMonth)} leads · team visit target ${totalTarget}</div>
       </div>
       <span class="mono" style="font-size:26px;color:${pctT>=70?'#5FE0AC':pctT>=40?'#FCC032':'#7ED9F2'}">${pctT}%</span>
     </div>
@@ -1805,7 +1917,7 @@ function cMonthly(){
     <div class="kpi"><b>${mtdPlanned}</b><small>Workshops planned</small></div>
     <div class="kpi"><b>${mtdWsDone}${(()=>{const t=TEAM().reduce((a,b)=>a+(+b.wsTarget||0),0);return t?" / "+t:"";})()}</b><small>Workshops done</small></div>
     <div class="kpi"><b>${mtdRvDone}</b><small>Revisits done</small></div>
-    ${(()=>{const t=leadsTargetAll(), d=leadsAll();
+    ${(()=>{const t=leadsTargetAll(), d=leadsAll(mMonth);
       return t?`<div class="kpi pos"><b>${d} / ${t}</b><small>Leads vs target</small></div>`
               :`<div class="kpi pos"><b>${d}</b><small>Leads</small></div>`;})()}
   </div>
@@ -1830,9 +1942,9 @@ function cMonthly(){
         <td><b>${b.name}</b></td><td>${b.campus}</td>
         <td class="mono">${countVisits(bToday)}</td>
         <td class="mono">${bv}</td>
-        <td class="mono">${wp}</td><td class="mono">${workshopsDoneFor(b.id)}</td>
+        <td class="mono">${wp}</td><td class="mono">${workshopsDoneFor(b.id, mMonth)}</td>
         <td class="mono">${b.wsTarget||"\u2014"}</td>
-        <td class="mono">${leadsFor(b.id)}</td>
+        <td class="mono">${leadsFor(b.id, mMonth)}</td>
         <td class="mono">${b.leadsTarget||"\u2014"}</td>
         <td class="mono">${revisitsDone(bl)}</td>
         <td class="mono">${b.target}</td></tr>`;}).join("")}
@@ -1843,7 +1955,7 @@ function cMonthly(){
         <td class="mono"><b>${POOL().filter(s=>s.stage===S_PLANNED).length}</b></td>
         <td class="mono"><b>${mtdWsDone}</b></td>
         <td class="mono"><b>${TEAM().reduce((a,b)=>a+(+b.wsTarget||0),0)}</b></td>
-        <td class="mono"><b>${leadsAll()}</b></td>
+        <td class="mono"><b>${leadsAll(mMonth)}</b></td>
         <td class="mono"><b>${leadsTargetAll()}</b></td>
         <td class="mono"><b>${mtdRvDone}</b></td>
         <td class="mono"><b>${totalTarget}</b></td></tr>

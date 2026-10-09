@@ -3,7 +3,7 @@
    API calls are never cached: stale school lists and visit logs would be worse
    than an honest error message. */
 
-const CACHE = 'alta-shell-v2';   // bumped so the old site's cache is dropped
+const CACHE = 'alta-shell-v3';   // bumped so phones holding an old copy fetch the new app
 const SHELL = [
   './',
   './index.html',
